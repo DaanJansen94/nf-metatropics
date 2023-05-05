@@ -10,7 +10,7 @@
             "type": "object",
             "fa_icon": "fas fa-terminal",
             "description": "Define where the pipeline should find input data and save output data.",
-            "required": ["input", "outdir"],
+            "required": ["input", "input_dir", "outdir"],
             "properties": {
                 "input": {
                     "type": "string",
@@ -19,8 +19,13 @@
                     "pattern": "^\\S+\\.csv$",
                     "schema": "assets/schema_input.json",
                     "description": "Path to comma-separated file containing information about the samples in the experiment.",
-                    "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 3 columns, and a header row. See [usage docs](https://nf-co.re/metatropics/usage#samplesheet-input).",
+                    "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 3 columns, and a header row. See [usage docs](https://nf-co.re/metatropics/usage#samplesheet-input). Ex.: barcode01,name_for_this_samples",
                     "fa_icon": "fas fa-file-csv"
+                },
+                "input_dir": {
+                    "type": "string",
+                    "default": "None",
+                    "description": "Input directory with fast5 or fastq files. If fastq files, they should be one for each sample and named for instance as barcode01.fastq"
                 },
                 "outdir": {
                     "type": "string",
@@ -283,5 +288,54 @@
         {
             "$ref": "#/definitions/generic_options"
         }
-    ]
+    ],
+    "properties": {
+        "basecall": {
+            "type": "boolean",
+            "description": "In case fast5 is the input, that option shoud be true. Default is false."
+        },
+        "model": {
+            "type": "string",
+            "default": "dna_r9.4.1_450bps_hac.cfg",
+            "description": "In case fast5 is the input, the guppy model for basecalling should be provide."
+        },
+        "minLength": {
+            "type": "integer",
+            "default": 200,
+            "description": "Minimum length for a read to be analyzed."
+        },
+        "minVirus": {
+            "type": "number",
+            "default": 0.001,
+            "description": "Minimum virus data frequency in the raw data to be part of the output."
+        },
+        "usegpu": {
+            "type": "boolean",
+            "description": "In case fast5 is the input, the use of GPU Nvidia should be true."
+        },
+        "dbmeta": {
+            "type": "string",
+            "default": "None",
+            "description": "Path for the MetaMaps database for read classification."
+        },
+        "hostfasta": {
+            "type": "string",
+            "default": "None",
+            "description": "Path for the genome fasta file of the host of the samples."
+        },
+        "nrdb": {
+            "type": "string",
+            "default": "None",
+            "description": "Path for NCBI NR database to de novo contig annotation"
+        },
+        "trim": {
+            "type": "boolean",
+            "description": "Trimming of 28 nucleotides at 3 and 5 prime when SISPA is used."
+        },
+        "pair": {
+            "type": "boolean",
+            "description": "If barcodes were added at both sides of a read (true) or only at one side (false)."
+        }
+    },
+    "required": ["dbmeta", "hostfasta"]
 }

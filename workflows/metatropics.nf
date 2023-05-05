@@ -38,6 +38,7 @@ ch_multiqc_custom_methods_description = params.multiqc_methods_description ? fil
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
 //
 include { INPUT_CHECK } from '../subworkflows/local/input_check'
+include { INPUT_CHECK_METATROPICS } from '../subworkflows/local/input_check_metatropics'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -51,12 +52,16 @@ include { INPUT_CHECK } from '../subworkflows/local/input_check'
 include { FASTQC                      } from '../modules/nf-core/fastqc/main'
 include { MULTIQC                     } from '../modules/nf-core/multiqc/main'
 include { CUSTOM_DUMPSOFTWAREVERSIONS } from '../modules/nf-core/custom/dumpsoftwareversions/main'
-
+include { ECHO_READS                  } from '../modules/local/echo_reads'
+include { GUPPY_ONT                   } from '../modules/local/guppy/ont'
+include { GUPPYDEMULTI_DEMULTIPLEXING } from '../modules/local/guppydemulti/demultiplexing'
+include { FIX_NAMES                   } from '../modules/local/fix_names'
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     RUN MAIN WORKFLOW
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
+
 
 // Info required for completion email and summary
 def multiqc_report = []
@@ -80,6 +85,50 @@ workflow METATROPICS {
         INPUT_CHECK.out.reads
     )
     ch_versions = ch_versions.mix(FASTQC.out.versions.first())
+
+    //
+    // MODULE: Echo reads
+    //
+    //ECHO_READS (
+    //    INPUT_CHECK.out.reads
+    //)
+
+    //
+    //MODULES_DEVELOPED_BY_ANTONIO
+    //
+    ch_input2 = file("/home/antonio/Desktop/example2.csv")
+    INPUT_CHECK_METATROPICS{
+        ch_input2
+    }
+    //INPUT_CHECK_METATROPICS.out.reads.map{tuple(it[1])}.view()
+    ch_sample = INPUT_CHECK_METATROPICS.out.reads.map{tuple(it[1],it[0])}
+    //ch_sample.view()
+
+    if(params.basecall==true){
+        inFast5 = channel.fromPath(params.input_dir)
+        //inFast5.view()
+        GUPPY_ONT(
+            inFast5
+        )
+        //ch_versions = ch_versions.mix(GUPPY_ONT.out.versions)
+
+        GUPPYDEMULTI_DEMULTIPLEXING(
+            GUPPY_ONT.out.basecalling_ch
+        )
+        //ch_versions = ch_versions.mix(GUPPYDEMULTI_DEMULTIPLEXING.out.versions)
+
+        ch_barcode = GUPPYDEMULTI_DEMULTIPLEXING.out.barcodeReads.flatten().map{file -> tuple(file.simpleName, file)}
+        ch_sample_barcode = ch_sample.join(ch_barcode)
+        //ch_sample_barcode.view()
+
+        FIX_NAMES(
+            ch_sample_barcode
+        )
+        //FIX_NAMES.out.fqreads.view()
+
+    }
+
+
 
     CUSTOM_DUMPSOFTWAREVERSIONS (
         ch_versions.unique().collectFile(name: 'collated_versions.yml')
