@@ -39,6 +39,7 @@ ch_multiqc_custom_methods_description = params.multiqc_methods_description ? fil
 //
 include { INPUT_CHECK } from '../subworkflows/local/input_check'
 include { INPUT_CHECK_METATROPICS } from '../subworkflows/local/input_check_metatropics'
+include { FIX } from '../subworkflows/local/subfix_names'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -55,7 +56,7 @@ include { CUSTOM_DUMPSOFTWAREVERSIONS } from '../modules/nf-core/custom/dumpsoft
 include { ECHO_READS                  } from '../modules/local/echo_reads'
 include { GUPPY_ONT                   } from '../modules/local/guppy/ont'
 include { GUPPYDEMULTI_DEMULTIPLEXING } from '../modules/local/guppydemulti/demultiplexing'
-include { FIX_NAMES                   } from '../modules/local/fix_names'
+//include { FIX_NAMES                   } from '../modules/local/fix_names'
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     RUN MAIN WORKFLOW
@@ -77,6 +78,7 @@ workflow METATROPICS {
         ch_input
     )
     ch_versions = ch_versions.mix(INPUT_CHECK.out.versions)
+    //INPUT_CHECK.out.reads.map{it[1]}.view()
 
     //
     // MODULE: Run FastQC
@@ -121,11 +123,11 @@ workflow METATROPICS {
         ch_sample_barcode = ch_sample.join(ch_barcode)
         //ch_sample_barcode.view()
 
-        FIX_NAMES(
+        //FIX_NAMES(
+        FIX(
             ch_sample_barcode
         )
-        //FIX_NAMES.out.fqreads.view()
-
+        //FIX.out.reads.map{it[1]}.view()
     }
 
 
