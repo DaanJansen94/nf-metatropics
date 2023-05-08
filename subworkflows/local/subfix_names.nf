@@ -30,6 +30,6 @@ def create_map(sample) {
     //}
     //fastq_meta = [ meta , [file(fastqin)] ]
     //meta.path = file(fastqin)
-    return [meta]
+    return meta
     //return[fastq_meta]
 }

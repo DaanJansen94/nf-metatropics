@@ -56,6 +56,7 @@ include { CUSTOM_DUMPSOFTWAREVERSIONS } from '../modules/nf-core/custom/dumpsoft
 include { ECHO_READS                  } from '../modules/local/echo_reads'
 include { GUPPY_ONT                   } from '../modules/local/guppy/ont'
 include { GUPPYDEMULTI_DEMULTIPLEXING } from '../modules/local/guppydemulti/demultiplexing'
+include { FASTP                       } from '../modules/nf-core/fastp/main'
 //include { FIX_NAMES                   } from '../modules/local/fix_names'
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -127,9 +128,16 @@ workflow METATROPICS {
         FIX(
             ch_sample_barcode
         )
+        //FIX.out.reads.view()
         //FIX.out.reads.map{it[1]}.view()
     }
-
+    fastp_save_trimmed_fail = false
+    FASTP(
+        FIX.out.reads,
+        [],
+        fastp_save_trimmed_fail,
+        []
+    )
 
 
     CUSTOM_DUMPSOFTWAREVERSIONS (

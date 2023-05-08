@@ -6,10 +6,11 @@ process FIX_NAMES {
     tuple val(meta), val(sample), path(reads)
 
     output:
-    tuple val(sample), path("*.fastq"), emit : fqreads
+    tuple val(sample), path("*.fastq.gz"), emit : fqreads
 
     script:
     """
     cat $reads/* > ${sample}.fastq
+    gzip ${sample}.fastq
     """
 }
