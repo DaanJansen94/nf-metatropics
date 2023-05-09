@@ -99,15 +99,17 @@ workflow METATROPICS {
     //
     //MODULES_DEVELOPED_BY_ANTONIO
     //
-    ch_input2 = file("/home/antonio/Desktop/example2.csv")
+    ch_input2 = params.input_fastq
     INPUT_CHECK_METATROPICS{
         ch_input2
     }
-    //INPUT_CHECK_METATROPICS.out.reads.map{tuple(it[1])}.view()
-    ch_sample = INPUT_CHECK_METATROPICS.out.reads.map{tuple(it[1],it[0])}
+    //INPUT_CHECK_METATROPICS.out.reads.view()
+    //ch_sample = INPUT_CHECK_METATROPICS.out.reads.map{tuple(it[1],it[0])}
     //ch_sample.view()
 
     if(params.basecall==true){
+        ch_sample = INPUT_CHECK_METATROPICS.out.reads.map{tuple(it[1],it[0])}
+
         inFast5 = channel.fromPath(params.input_dir)
         //inFast5.view()
         GUPPY_ONT(
@@ -131,6 +133,16 @@ workflow METATROPICS {
         //FIX.out.reads.view()
         //FIX.out.reads.map{it[1]}.view()
     }
+    else if(params.basecall==false){
+        ch_sample = INPUT_CHECK_METATROPICS.out.reads.map{tuple(it[1].replaceFirst(/\/.+\//,""),it[0],it[1])}
+        //ch_sample.map{tuple(it[1].replaceFirst(/.fastq/,""),it[0],it[1])}
+        //ch_sample.view()
+        FIX(
+            ch_sample
+        )
+        //FIX.out.reads.view()
+    }
+
     fastp_save_trimmed_fail = false
     FASTP(
         FIX.out.reads,
@@ -138,6 +150,7 @@ workflow METATROPICS {
         fastp_save_trimmed_fail,
         []
     )
+    FASTP.out.reads.view()
 
 
     CUSTOM_DUMPSOFTWAREVERSIONS (

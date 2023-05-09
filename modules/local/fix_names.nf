@@ -10,7 +10,11 @@ process FIX_NAMES {
 
     script:
     """
-    cat $reads/* > ${sample}.fastq
-    gzip ${sample}.fastq
+    if [[ $params.basecall == "true" ]]; then
+        cat $reads/* > ${sample}.fastq && gzip ${sample}.fastq
+
+    elif [[ $params.basecall == "false" ]]; then
+        cat $reads > ${sample}.fastq && gzip ${sample}.fastq
+    fi
     """
 }
