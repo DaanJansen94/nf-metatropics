@@ -40,6 +40,7 @@ ch_multiqc_custom_methods_description = params.multiqc_methods_description ? fil
 include { INPUT_CHECK } from '../subworkflows/local/input_check'
 include { INPUT_CHECK_METATROPICS } from '../subworkflows/local/input_check_metatropics'
 include { FIX } from '../subworkflows/local/subfix_names'
+include { HUMAN_MAPPING } from '../subworkflows/local/human_mapping'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -57,6 +58,12 @@ include { ECHO_READS                  } from '../modules/local/echo_reads'
 include { GUPPY_ONT                   } from '../modules/local/guppy/ont'
 include { GUPPYDEMULTI_DEMULTIPLEXING } from '../modules/local/guppydemulti/demultiplexing'
 include { FASTP                       } from '../modules/nf-core/fastp/main'
+include { NANOPLOT                    } from '../modules/nf-core/nanoplot/main'
+
+//include { MINIMAP2_ALIGN              } from '../modules/nf-core/minimap2/align/main'
+//include { SAMTOOLS_SORT               } from '../modules/nf-core/samtools/sort/main'
+//include { SAMTOOLS_INDEX              } from '../modules/nf-core/samtools/index/main'
+//include { SAMTOOLS_FASTQ              } from '../modules/nf-core/samtools/fastq/main'
 //include { FIX_NAMES                   } from '../modules/local/fix_names'
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -150,8 +157,22 @@ workflow METATROPICS {
         fastp_save_trimmed_fail,
         []
     )
-    FASTP.out.reads.view()
+    ch_versions = ch_versions.mix(FASTP.out.versions.first())
+    //FASTP.out.reads.view()
 
+    NANOPLOT(
+        FASTP.out.reads
+    )
+    ch_versions = ch_versions.mix(NANOPLOT.out.versions.first())
+    //NANOPLOT.out.txt.view()
+
+    HUMAN_MAPPING{
+        FASTP.out.reads
+    }
+    HUMAN_MAPPING.out.nohumanreads.view()
+    ch_versions = ch_versions.mix(HUMAN_MAPPING.out.versionsmini)
+    ch_versions = ch_versions.mix(HUMAN_MAPPING.out.versionssamsort)
+    ch_versions = ch_versions.mix(HUMAN_MAPPING.out.versionssamfastq)
 
     CUSTOM_DUMPSOFTWAREVERSIONS (
         ch_versions.unique().collectFile(name: 'collated_versions.yml')
@@ -171,6 +192,8 @@ workflow METATROPICS {
     ch_multiqc_files = ch_multiqc_files.mix(ch_methods_description.collectFile(name: 'methods_description_mqc.yaml'))
     ch_multiqc_files = ch_multiqc_files.mix(CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect())
     ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]}.ifEmpty([]))
+    ch_multiqc_files = ch_multiqc_files.mix(FASTP.out.json.collect{it[1]}.ifEmpty([]))
+    ch_multiqc_files = ch_multiqc_files.mix(NANOPLOT.out.txt.collect{it[1]}.ifEmpty([]))
 
     MULTIQC (
         ch_multiqc_files.collect(),
