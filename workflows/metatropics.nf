@@ -59,6 +59,7 @@ include { GUPPY_ONT                   } from '../modules/local/guppy/ont'
 include { GUPPYDEMULTI_DEMULTIPLEXING } from '../modules/local/guppydemulti/demultiplexing'
 include { FASTP                       } from '../modules/nf-core/fastp/main'
 include { NANOPLOT                    } from '../modules/nf-core/nanoplot/main'
+include { METAMAPS_MAP                } from '../modules/local/metamaps/map'
 
 //include { MINIMAP2_ALIGN              } from '../modules/nf-core/minimap2/align/main'
 //include { SAMTOOLS_SORT               } from '../modules/nf-core/samtools/sort/main'
@@ -166,10 +167,15 @@ workflow METATROPICS {
     ch_versions = ch_versions.mix(NANOPLOT.out.versions.first())
     //NANOPLOT.out.txt.view()
 
-    HUMAN_MAPPING{
+    HUMAN_MAPPING(
         FASTP.out.reads
-    }
+    )
     HUMAN_MAPPING.out.nohumanreads.view()
+
+    METAMAPS_MAP(
+        HUMAN_MAPPING.out.nohumanreads
+    )
+
     ch_versions = ch_versions.mix(HUMAN_MAPPING.out.versionsmini)
     ch_versions = ch_versions.mix(HUMAN_MAPPING.out.versionssamsort)
     ch_versions = ch_versions.mix(HUMAN_MAPPING.out.versionssamfastq)
