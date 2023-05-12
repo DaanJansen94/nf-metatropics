@@ -15,11 +15,14 @@
 // TODO nf-core: Optional inputs are not currently supported by Nextflow. However, using an empty
 //               list (`[]`) instead of a file can be used to work around this issue.
 
-process METAMAPS_MAP {
+process METAMAPS_CLASSIFY {
     tag "$meta.id"
-    //label 'process_single'
-    label 'process_medium'
+    label 'process_single'
 
+    // TODO nf-core: List required Conda package(s).
+    //               Software MUST be pinned to channel (i.e. "bioconda"), version (i.e. "1.10").
+    //               For Conda, the build (i.e. "h9402c20_2") must be EXCLUDED to support installation on different operating systems.
+    // TODO nf-core: See section in main README for further information regarding finding and adding container addresses to the section below.
     container "/home/antonio/metatropics/singularity/recipes/images/metamaps.sif"
     //conda "bioconda::metamaps=0.1.98102e9"
     //container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
@@ -27,15 +30,15 @@ process METAMAPS_MAP {
     //    'quay.io/biocontainers/metamaps:0.1.98102e9--h176a8bc_0' }"
 
     input:
-    tuple val(meta), path(input)
+    tuple val(meta), path(input), path(metamap), path(unmapped), path(parametersmeta)
 
     output:
-    tuple val(meta), path("*_results"), emit: metaclass
-    tuple val(meta), path("*_results.meta"), emit: otherclassmeta
-    tuple val(meta), path("*_results.meta.unmappedReadsLengths"), emit: metalength
-    tuple val(meta), path("*_results.parameters"), emit: metaparameters
+    tuple val(meta), path("*_results.EM"), emit: classem
+    tuple val(meta), path("*.EM.reads2Taxon.krona"), emit: classkrona
+    tuple val(meta), path("*.EM.lengthAndIdentitiesPerMappingUnit"), emit: classlength
+    tuple val(meta), path("*.EM.WIMP"), emit: classWIMP
+    tuple val(meta), path("*.EM.contigCoverage"), emit: classcov
 
-    // TODO nf-core: List additional required output channels/values here
     //path "versions.yml"           , emit: versions
 
     when:
@@ -53,11 +56,10 @@ process METAMAPS_MAP {
     //               using the Nextflow "task" variable e.g. "--threads $task.cpus"
     // TODO nf-core: Please replace the example samtools command below with your module's command
     // TODO nf-core: Please indent the command appropriately (4 spaces!!) to help with readability ;)
-    //gunzip -c $input > read_temp.fastq
     """
-    metamaps mapDirectly --all $args -q $input -o ${prefix}_classification_results --maxmemory 12
+    metamaps classify --mappings ${prefix}_classification_results $args
     """
-    //cat <<-END_VERSIONS > versions.yml
+    //at <<-END_VERSIONS > versions.yml
     //"${task.process}":
     //    metamaps: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//' ))
     //END_VERSIONS

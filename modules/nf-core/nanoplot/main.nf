@@ -15,6 +15,7 @@ process NANOPLOT {
     tuple val(meta), path("*.png") , optional: true, emit: png
     tuple val(meta), path("*.txt")                 , emit: txt
     tuple val(meta), path("*.log")                 , emit: log
+    tuple val(meta), path("*.total_reads")         , emit: totalreads
     path  "versions.yml"                           , emit: versions
 
     when:
@@ -25,6 +26,7 @@ process NANOPLOT {
     def input_file = ("$ontfile".endsWith(".fastq.gz")) ? "--fastq ${ontfile}" :
         ("$ontfile".endsWith(".txt")) ? "--summary ${ontfile}" : ''
     """
+    zcat $ontfile| wc -l | awk '{x=\$1/4; print x}' > ${meta.id}.total_reads
     NanoPlot \\
         $args \\
         -t $task.cpus \\

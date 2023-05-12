@@ -60,6 +60,7 @@ include { GUPPYDEMULTI_DEMULTIPLEXING } from '../modules/local/guppydemulti/demu
 include { FASTP                       } from '../modules/nf-core/fastp/main'
 include { NANOPLOT                    } from '../modules/nf-core/nanoplot/main'
 include { METAMAPS_MAP                } from '../modules/local/metamaps/map'
+include { METAMAPS_CLASSIFY                } from '../modules/local/metamaps/classify'
 
 //include { MINIMAP2_ALIGN              } from '../modules/nf-core/minimap2/align/main'
 //include { SAMTOOLS_SORT               } from '../modules/nf-core/samtools/sort/main'
@@ -170,11 +171,27 @@ workflow METATROPICS {
     HUMAN_MAPPING(
         FASTP.out.reads
     )
-    HUMAN_MAPPING.out.nohumanreads.view()
+    //HUMAN_MAPPING.out.nohumanreads.view()
 
     METAMAPS_MAP(
         HUMAN_MAPPING.out.nohumanreads
     )
+
+    meta_with_othermeta = METAMAPS_MAP.out.metaclass.join(METAMAPS_MAP.out.otherclassmeta)
+    meta_with_othermeta_with_metalength = meta_with_othermeta.join(METAMAPS_MAP.out.metalength)
+    meta_with_othermeta_with_metalength_with_parameter = meta_with_othermeta_with_metalength.join(METAMAPS_MAP.out.metaparameters)
+    //meta_with_othermeta_with_metalength_with_parameter.view()
+
+    METAMAPS_CLASSIFY(
+        meta_with_othermeta_with_metalength_with_parameter
+    )
+
+
+    METAMAPS_MAP.out.metaclass.view()
+    NANOPLOT.out.totalreads.view()
+    METAMAPS_CLASSIFY.out.classlength.view()
+    METAMAPS_CLASSIFY.out.classcov.view()
+
 
     ch_versions = ch_versions.mix(HUMAN_MAPPING.out.versionsmini)
     ch_versions = ch_versions.mix(HUMAN_MAPPING.out.versionssamsort)
