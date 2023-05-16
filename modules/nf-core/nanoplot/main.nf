@@ -26,7 +26,7 @@ process NANOPLOT {
     def input_file = ("$ontfile".endsWith(".fastq.gz")) ? "--fastq ${ontfile}" :
         ("$ontfile".endsWith(".txt")) ? "--summary ${ontfile}" : ''
     """
-    zcat $ontfile| wc -l | awk '{x=\$1/4; print x}' > ${meta.id}.total_reads
+    zcat $ontfile| wc -l | awk '{x=\$1/4; print x}' > ${meta.id}_classification_results.total_reads
     NanoPlot \\
         $args \\
         -t $task.cpus \\

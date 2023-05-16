@@ -60,7 +60,8 @@ include { GUPPYDEMULTI_DEMULTIPLEXING } from '../modules/local/guppydemulti/demu
 include { FASTP                       } from '../modules/nf-core/fastp/main'
 include { NANOPLOT                    } from '../modules/nf-core/nanoplot/main'
 include { METAMAPS_MAP                } from '../modules/local/metamaps/map'
-include { METAMAPS_CLASSIFY                } from '../modules/local/metamaps/classify'
+include { METAMAPS_CLASSIFY           } from '../modules/local/metamaps/classify'
+include { R_METAPLOT                  } from '../modules/local/r/metaplot'
 
 //include { MINIMAP2_ALIGN              } from '../modules/nf-core/minimap2/align/main'
 //include { SAMTOOLS_SORT               } from '../modules/nf-core/samtools/sort/main'
@@ -187,10 +188,16 @@ workflow METATROPICS {
     )
 
 
-    METAMAPS_MAP.out.metaclass.view()
-    NANOPLOT.out.totalreads.view()
-    METAMAPS_CLASSIFY.out.classlength.view()
-    METAMAPS_CLASSIFY.out.classcov.view()
+    //METAMAPS_MAP.out.metaclass.view()
+    //NANOPLOT.out.totalreads.view()
+    //METAMAPS_CLASSIFY.out.classlength.view()
+    //METAMAPS_CLASSIFY.out.classcov.view()
+
+    rmetaplot_ch=((METAMAPS_MAP.out.metaclass.join(METAMAPS_CLASSIFY.out.classlength)).join(METAMAPS_CLASSIFY.out.classcov)).join(NANOPLOT.out.totalreads)
+
+    R_METAPLOT(
+        rmetaplot_ch
+    )
 
 
     ch_versions = ch_versions.mix(HUMAN_MAPPING.out.versionsmini)

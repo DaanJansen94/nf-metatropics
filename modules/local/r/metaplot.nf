@@ -30,19 +30,28 @@ process R_METAPLOT {
     //    'quay.io/biocontainers/YOUR-TOOL-HERE' }"
 
     input:
+    tuple val(meta), path(classification), path(classlengh), path(classcov), path(classtotal)
+    //tuple val(meta), path(classlengh)
+    //tuple val(meta), path(classcov)
+    //tuple val(meta), path(classtotal)
+
+
     // TODO nf-core: Where applicable all sample-specific information e.g. "id", "single_end", "read_group"
     //               MUST be provided as an input via a Groovy Map called "meta".
     //               This information may not be required in some instances e.g. indexing reference genome files:
     //               https://github.com/nf-core/modules/blob/master/modules/nf-core/bwa/index/main.nf
     // TODO nf-core: Where applicable please provide/convert compressed files as input/output
     //               e.g. "*.fastq.gz" and NOT "*.fastq", "*.bam" and NOT "*.sam" etc.
-    tuple val(meta), path(bam)
+    //tuple val(meta), path(bam)
 
     output:
+    tuple val(meta), path("*.pdf"), emit: plotpdf
+    tuple val(meta), path("*.tsv"), emit: reporttsv
+    tuple val(meta), path("*.txt"), emit: denovo
     // TODO nf-core: Named file extensions MUST be emitted for ALL output channels
-    tuple val(meta), path("*.bam"), emit: bam
+    //tuple val(meta), path("*.bam"), emit: bam
     // TODO nf-core: List additional required output channels/values here
-    path "versions.yml"           , emit: versions
+    //path "versions.yml"           , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -59,18 +68,18 @@ process R_METAPLOT {
     //               using the Nextflow "task" variable e.g. "--threads $task.cpus"
     // TODO nf-core: Please replace the example samtools command below with your module's command
     // TODO nf-core: Please indent the command appropriately (4 spaces!!) to help with readability ;)
+    //samtools \\
+    //    sort \\
+    //    $args \\
+    //    -@ $task.cpus \\
+    //    -o ${prefix}.bam \\
+    //    -T $prefix \\
+    //    $bam
+    //cat <<-END_VERSIONS > versions.yml
+    //"${task.process}":
+    //    r: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//' ))
+    //END_VERSIONS
     """
-    samtools \\
-        sort \\
-        $args \\
-        -@ $task.cpus \\
-        -o ${prefix}.bam \\
-        -T $prefix \\
-        $bam
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        r: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//' ))
-    END_VERSIONS
+    plotMappingSummary.R ${prefix}_classification_results $args
     """
 }
