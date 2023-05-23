@@ -8,11 +8,11 @@ process SEQTK_SUBSEQ {
         'biocontainers/seqtk:1.3--h5bf99c6_3' }"
 
     input:
-    path sequences
-    path filter_list
+    tuple val(meta), path (sequences), path (filter_list)
+    //path filter_list
 
     output:
-    path "*.gz"         , emit: sequences
+    tuple val(meta), path("*.gz") , emit: sequences
     path "versions.yml" , emit: versions
 
     when:

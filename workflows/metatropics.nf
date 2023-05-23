@@ -67,12 +67,11 @@ include { KRONA_KTIMPORTTAXONOMY      } from '../modules/nf-core/krona/ktimportt
 include { REF_FASTA                   } from '../modules/local/ref_fasta'
 include { SEQTK_SUBSEQ                } from '../modules/nf-core/seqtk/subseq/main'
 include { REFFIX_FASTA                } from '../modules/local/reffix_fasta'
+include { MEDAKA                      } from '../modules/nf-core/medaka/main'
+include { SAMTOOLS_COVERAGE           } from '../modules/nf-core/samtools/coverage/main'
+include { IVAR_CONSENSUS              } from '../modules/nf-core/ivar/consensus/main'
 
-//include { MINIMAP2_ALIGN              } from '../modules/nf-core/minimap2/align/main'
-//include { SAMTOOLS_SORT               } from '../modules/nf-core/samtools/sort/main'
-//include { SAMTOOLS_INDEX              } from '../modules/nf-core/samtools/index/main'
-//include { SAMTOOLS_FASTQ              } from '../modules/nf-core/samtools/fastq/main'
-//include { FIX_NAMES                   } from '../modules/local/fix_names'
+
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     RUN MAIN WORKFLOW
@@ -222,11 +221,11 @@ workflow METATROPICS {
     //REF_FASTA.out.virusout.view()
 
     //SEQTK_SUBSEQ
-    REF_FASTA.out.headereads.collect { entry ->
+    headers_ch = REF_FASTA.out.headereads.flatMap { entry ->
         def id = entry[0].id
         def singleEnd = entry[0].single_end
         entry[1].collect { virus ->
-            [[id: id, single_end: singleEnd, virus: (virus.getBaseName()).replaceFirst(/.+\./,"")], "${id}.${virus}"]
+            [[id: id, single_end: singleEnd, virus: (virus.getBaseName()).replaceFirst(/.+\./,"")], "${virus}"]
         }
     }//.view()
 
@@ -238,20 +237,45 @@ workflow METATROPICS {
         }
     }//.view()
 
-    REF_FASTA.out.allreads.collect { entry ->
+    fastq_ch = REF_FASTA.out.allreads.flatMap { entry ->
         def id = entry[0].id
         def singleEnd = entry[0].single_end
         entry[1].collect { virus ->
-            [[id: id, single_end: singleEnd, virus: (virus.getBaseName()).replaceFirst(/.+\./,"")], "${id}.${virus}"]
+            [[id: id, single_end: singleEnd, virus: (virus.getBaseName()).replaceFirst(/.+\./,"")], "${virus}"]
         }
     }//.view()
 
     REFFIX_FASTA(
         fasta_ch
     )
-    REFFIX_FASTA.out.fixedseqref.view()
+    //REFFIX_FASTA.out.fixedseqref.view()
 
 
+    //fastq_ch.join(headers_ch).view()
+    SEQTK_SUBSEQ(
+        fastq_ch.join(headers_ch)
+    )
+    //SEQTK_SUBSEQ.out.sequences.view()
+
+    //SEQTK_SUBSEQ.out.sequences.join(REFFIX_FASTA.out.fixedseqref).view()
+    MEDAKA(
+        SEQTK_SUBSEQ.out.sequences.join(REFFIX_FASTA.out.fixedseqref)
+    )
+    //MEDAKA.out.bamfiles.view()
+
+    SAMTOOLS_COVERAGE(
+        MEDAKA.out.bamfiles
+    )
+    //SAMTOOLS_COVERAGE.out.coverage.view()
+
+    //MEDAKA.out.bamfiles.join(REFFIX_FASTA.out.fixedseqref).view()
+
+    savempileup = false
+    IVAR_CONSENSUS(
+        MEDAKA.out.bamfiles.join(REFFIX_FASTA.out.fixedseqref),
+        savempileup
+    )
+    //IVAR_CONSENSUS.out.fasta.view()
 
 
 
