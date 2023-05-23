@@ -62,6 +62,11 @@ include { NANOPLOT                    } from '../modules/nf-core/nanoplot/main'
 include { METAMAPS_MAP                } from '../modules/local/metamaps/map'
 include { METAMAPS_CLASSIFY           } from '../modules/local/metamaps/classify'
 include { R_METAPLOT                  } from '../modules/local/r/metaplot'
+include { KRONA_KRONADB               } from '../modules/nf-core/krona/kronadb/main'
+include { KRONA_KTIMPORTTAXONOMY      } from '../modules/nf-core/krona/ktimporttaxonomy/main'
+include { REF_FASTA                   } from '../modules/local/ref_fasta'
+include { SEQTK_SUBSEQ                } from '../modules/nf-core/seqtk/subseq/main'
+include { REFFIX_FASTA                } from '../modules/local/reffix_fasta'
 
 //include { MINIMAP2_ALIGN              } from '../modules/nf-core/minimap2/align/main'
 //include { SAMTOOLS_SORT               } from '../modules/nf-core/samtools/sort/main'
@@ -198,6 +203,69 @@ workflow METATROPICS {
     R_METAPLOT(
         rmetaplot_ch
     )
+
+    KRONA_KRONADB();
+    KRONA_KTIMPORTTAXONOMY(
+        METAMAPS_CLASSIFY.out.classkrona,
+        KRONA_KRONADB.out.db
+    )
+
+    reffasta_ch=(R_METAPLOT.out.reporttsv.join(METAMAPS_CLASSIFY.out.classem)).join(HUMAN_MAPPING.out.nohumanreads)
+    //reffasta_ch.view()
+
+    REF_FASTA(
+        reffasta_ch
+    )
+
+    //REF_FASTA.out.headereads
+    //REF_FASTA.out.allreads.view()
+    //REF_FASTA.out.virusout.view()
+
+    //SEQTK_SUBSEQ
+    REF_FASTA.out.headereads.collect { entry ->
+        def id = entry[0].id
+        def singleEnd = entry[0].single_end
+        entry[1].collect { virus ->
+            [[id: id, single_end: singleEnd, virus: (virus.getBaseName()).replaceFirst(/.+\./,"")], "${id}.${virus}"]
+        }
+    }//.view()
+
+    fasta_ch = REF_FASTA.out.seqref.flatMap { entry ->
+        def id = entry[0].id
+        def singleEnd = entry[0].single_end
+        entry[1].collect { virus ->
+            [[id: id, single_end: singleEnd, virus: ((virus.getBaseName()).replaceFirst(/\.REF+/,"")).replaceFirst(/.+\./,"")], "${virus}"]
+        }
+    }//.view()
+
+    REF_FASTA.out.allreads.collect { entry ->
+        def id = entry[0].id
+        def singleEnd = entry[0].single_end
+        entry[1].collect { virus ->
+            [[id: id, single_end: singleEnd, virus: (virus.getBaseName()).replaceFirst(/.+\./,"")], "${id}.${virus}"]
+        }
+    }//.view()
+
+    REFFIX_FASTA(
+        fasta_ch
+    )
+    REFFIX_FASTA.out.fixedseqref.view()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     ch_versions = ch_versions.mix(HUMAN_MAPPING.out.versionsmini)
