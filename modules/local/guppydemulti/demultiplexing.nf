@@ -82,7 +82,7 @@ process GUPPYDEMULTI_DEMULTIPLEXING {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        guppy: \$(guppy_barcoder --version)
+        guppy_barcoder: \$(echo \$(guppy_barcoder --version) | head -n 1| perl -p -e 's/.+Version //g')
     END_VERSIONS
     """
 }

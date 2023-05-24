@@ -58,9 +58,10 @@ process METAMAPS_CLASSIFY {
     // TODO nf-core: Please indent the command appropriately (4 spaces!!) to help with readability ;)
     """
     metamaps classify --mappings ${prefix}_classification_results $args
-    """
-    //at <<-END_VERSIONS > versions.yml
+    
+    //cat <<-END_VERSIONS > versions.yml
     //"${task.process}":
-    //    metamaps: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//' ))
+    //    metamaps_classify: \$(echo \$(metamaps --help) | grep MetaMaps | perl -p -e 's/MetaMaps v //g' )
     //END_VERSIONS
+    """
 }

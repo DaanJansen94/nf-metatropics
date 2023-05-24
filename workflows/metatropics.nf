@@ -54,7 +54,6 @@ include { HUMAN_MAPPING } from '../subworkflows/local/human_mapping'
 include { FASTQC                      } from '../modules/nf-core/fastqc/main'
 include { MULTIQC                     } from '../modules/nf-core/multiqc/main'
 include { CUSTOM_DUMPSOFTWAREVERSIONS } from '../modules/nf-core/custom/dumpsoftwareversions/main'
-include { ECHO_READS                  } from '../modules/local/echo_reads'
 include { GUPPY_ONT                   } from '../modules/local/guppy/ont'
 include { GUPPYDEMULTI_DEMULTIPLEXING } from '../modules/local/guppydemulti/demultiplexing'
 include { FASTP                       } from '../modules/nf-core/fastp/main'
@@ -105,13 +104,6 @@ workflow METATROPICS {
         INPUT_CHECK.out.reads
     )
     ch_versions = ch_versions.mix(FASTQC.out.versions.first())
-
-    //
-    // MODULE: Echo reads
-    //
-    //ECHO_READS (
-    //    INPUT_CHECK.out.reads
-    //)
 
     //
     //MODULES_DEVELOPED_BY_ANTONIO

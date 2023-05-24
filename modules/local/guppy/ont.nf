@@ -78,7 +78,7 @@ process GUPPY_ONT {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        guppy: \$(guppy_basecaller --version)
+        guppy_basecaller: \$(echo \$(guppy_basecaller --version) | head -n 1| perl -p -e 's/.+Version //g' | perl -p -e 's/,.+//g')
     END_VERSIONS
     """
 }

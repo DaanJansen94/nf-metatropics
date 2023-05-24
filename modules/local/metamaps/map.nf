@@ -56,9 +56,10 @@ process METAMAPS_MAP {
     //gunzip -c $input > read_temp.fastq
     """
     metamaps mapDirectly --all $args -q $input -o ${prefix}_classification_results --maxmemory 12
+    
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        metamaps_maps: \$(echo \$(metamaps --help) | grep MetaMaps | perl -p -e 's/MetaMaps v //g' )
+    END_VERSIONS
     """
-    //cat <<-END_VERSIONS > versions.yml
-    //"${task.process}":
-    //    metamaps: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//' ))
-    //END_VERSIONS
-}
+    }
