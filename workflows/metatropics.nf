@@ -70,7 +70,8 @@ include { REFFIX_FASTA                } from '../modules/local/reffix_fasta'
 include { MEDAKA                      } from '../modules/nf-core/medaka/main'
 include { SAMTOOLS_COVERAGE           } from '../modules/nf-core/samtools/coverage/main'
 include { IVAR_CONSENSUS              } from '../modules/nf-core/ivar/consensus/main'
-
+include { HOMOPOLISH_POLISHING        } from '../modules/local/homopolish/polishing'
+include { ADDING_DEPTH                } from '../modules/local/adding_depth'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -277,17 +278,31 @@ workflow METATROPICS {
     )
     //IVAR_CONSENSUS.out.fasta.view()
 
+    //IVAR_CONSENSUS.out.fasta.join(REFFIX_FASTA.out.fixedseqref).view()
+    HOMOPOLISH_POLISHING(
+        IVAR_CONSENSUS.out.fasta.join(REFFIX_FASTA.out.fixedseqref)
+    )
+    //HOMOPOLISH_POLISHING.out.polishconsensus.view()
 
 
 
+    //covcon_ch = SAMTOOLS_COVERAGE.out.coverage.join(HOMOPOLISH_POLISHING.out.polishconsensus)
+    covcon_ch = (SAMTOOLS_COVERAGE.out.coverage.join(HOMOPOLISH_POLISHING.out.polishconsensus)).map { entry ->
+    [[id: entry[0].id, single_end: entry[0].single_end], entry[1], entry[2]]
+    }//.view()
 
+    //covcon_ch.combine(R_METAPLOT.out.reporttsv, by: 0).view()
+    ADDING_DEPTH(
+        covcon_ch.combine(R_METAPLOT.out.reporttsv, by: 0)//.view()
+    )
 
-
-
-
-
-
-
+    //ADDING_DEPTH.out.repdepth.view()
+    (covcon_ch.combine(R_METAPLOT.out.reporttsv, by: 0)).map { entry ->
+        def id = entry[0].id
+        def singleEnd = entry[0].single_end
+        def virus = entry[1].getBaseName().replaceFirst(/.+\./,"")
+        [[id: id, single_end: singleEnd, virus: virus], entry[1], entry[2], entry[3]]
+    }.view()
 
 
 

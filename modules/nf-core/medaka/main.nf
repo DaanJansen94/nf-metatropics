@@ -31,7 +31,7 @@ process MEDAKA {
 
     mv medaka.annotated.vcf ${prefix}.vcf
     mv calls_to_ref.bam ${prefix}.sorted.bam
-    mv calls_to_ref.bam.bai ${prefix}.sorte.bam.bai
+    mv calls_to_ref.bam.bai ${prefix}.sorted.bam.bai
 
 
     cat <<-END_VERSIONS > versions.yml
