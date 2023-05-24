@@ -72,6 +72,8 @@ include { SAMTOOLS_COVERAGE           } from '../modules/nf-core/samtools/covera
 include { IVAR_CONSENSUS              } from '../modules/nf-core/ivar/consensus/main'
 include { HOMOPOLISH_POLISHING        } from '../modules/local/homopolish/polishing'
 include { ADDING_DEPTH                } from '../modules/local/adding_depth'
+include { FINAL_REPORT                } from '../modules/local/final_report'
+include { BAM_READCOUNT               } from '../modules/local/bam/readcount'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -292,17 +294,46 @@ workflow METATROPICS {
     }//.view()
 
     //covcon_ch.combine(R_METAPLOT.out.reporttsv, by: 0).view()
-    ADDING_DEPTH(
-        covcon_ch.combine(R_METAPLOT.out.reporttsv, by: 0)//.view()
-    )
-
-    //ADDING_DEPTH.out.repdepth.view()
-    (covcon_ch.combine(R_METAPLOT.out.reporttsv, by: 0)).map { entry ->
+    
+    addingdepthin_ch = (covcon_ch.combine(R_METAPLOT.out.reporttsv, by: 0)).map { entry ->
         def id = entry[0].id
         def singleEnd = entry[0].single_end
         def virus = entry[1].getBaseName().replaceFirst(/.+\./,"")
         [[id: id, single_end: singleEnd, virus: virus], entry[1], entry[2], entry[3]]
-    }.view()
+    }//.view()
+
+    ADDING_DEPTH(
+        addingdepthin_ch
+    )
+    
+    //(ADDING_DEPTH.out.repdepth.map{it[1]}).collect().view()
+    FINAL_REPORT(
+        (ADDING_DEPTH.out.repdepth.map{it[1]}).collect()
+    )
+    //FINAL_REPORT.out.finalReport.view()
+
+    BAM_READCOUNT(
+        MEDAKA.out.bamfiles.join(REFFIX_FASTA.out.fixedseqref)
+    )
+    //BAM_READCOUNT.out.bamcount.view()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
