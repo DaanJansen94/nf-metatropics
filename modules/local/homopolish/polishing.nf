@@ -6,11 +6,11 @@ process HOMOPOLISH_POLISHING {
     //               Software MUST be pinned to channel (i.e. "bioconda"), version (i.e. "1.10").
     //               For Conda, the build (i.e. "h9402c20_2") must be EXCLUDED to support installation on different operating systems.
     // TODO nf-core: See section in main README for further information regarding finding and adding container addresses to the section below.
-    //container "/home/antonio/metatropics/singularity/recipes/images/homopolish.sif"
-    conda "bioconda::homopolish=0.4.1"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/homopolish%3A0.4.1--pyhdfd78af_1':
-        'https://quay.io/repository/biocontainers/homopolish' }"
+    container "/home/antonio/metatropics/singularity/recipes/images/homopolish.sif"
+    //conda "bioconda::homopolish=0.4.1"
+    //container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+    //    'https://depot.galaxyproject.org/singularity/homopolish%3A0.4.1--pyhdfd78af_1':
+    //    'https://quay.io/repository/biocontainers/homopolish' }"
 
     input:
     tuple val(meta), path(consensus), path(reffasta)
@@ -42,7 +42,7 @@ process HOMOPOLISH_POLISHING {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        homopolish: \$(echo \$(homopolish --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//' ))
+        homopolish: \$(echo \$(homopolish --version) | perl -p -e 's/Homo.+: //g'  )
     END_VERSIONS
     """
 }

@@ -36,7 +36,7 @@ process METAMAPS_MAP {
     tuple val(meta), path("*_results.parameters"), emit: metaparameters
 
     // TODO nf-core: List additional required output channels/values here
-    //path "versions.yml"           , emit: versions
+    path "versions.yml"           , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -56,10 +56,10 @@ process METAMAPS_MAP {
     //gunzip -c $input > read_temp.fastq
     """
     metamaps mapDirectly --all $args -q $input -o ${prefix}_classification_results --maxmemory 12
-    
+
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        metamaps_maps: \$(echo \$(metamaps --help) | grep MetaMaps | perl -p -e 's/MetaMaps v //g' )
+        metamaps_maps: \$(echo \$(metamaps --help) | grep MetaMaps | perl -p -e 's/MetaMaps v |Simul.+//g' )
     END_VERSIONS
     """
     }

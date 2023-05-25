@@ -124,12 +124,12 @@ workflow METATROPICS {
         GUPPY_ONT(
             inFast5
         )
-        //ch_versions = ch_versions.mix(GUPPY_ONT.out.versions)
+        ch_versions = ch_versions.mix(GUPPY_ONT.out.versions)
 
         GUPPYDEMULTI_DEMULTIPLEXING(
             GUPPY_ONT.out.basecalling_ch
         )
-        //ch_versions = ch_versions.mix(GUPPYDEMULTI_DEMULTIPLEXING.out.versions)
+        ch_versions = ch_versions.mix(GUPPYDEMULTI_DEMULTIPLEXING.out.versions)
 
         ch_barcode = GUPPYDEMULTI_DEMULTIPLEXING.out.barcodeReads.flatten().map{file -> tuple(file.simpleName, file)}
         ch_sample_barcode = ch_sample.join(ch_barcode)
@@ -176,6 +176,7 @@ workflow METATROPICS {
     METAMAPS_MAP(
         HUMAN_MAPPING.out.nohumanreads
     )
+    ch_versions = ch_versions.mix(METAMAPS_MAP.out.versions.first())
 
     meta_with_othermeta = METAMAPS_MAP.out.metaclass.join(METAMAPS_MAP.out.otherclassmeta)
     meta_with_othermeta_with_metalength = meta_with_othermeta.join(METAMAPS_MAP.out.metalength)
@@ -185,7 +186,7 @@ workflow METATROPICS {
     METAMAPS_CLASSIFY(
         meta_with_othermeta_with_metalength_with_parameter
     )
-
+    ch_versions = ch_versions.mix(METAMAPS_CLASSIFY.out.versions.first())
 
     //METAMAPS_MAP.out.metaclass.view()
     //NANOPLOT.out.totalreads.view()
@@ -197,12 +198,15 @@ workflow METATROPICS {
     R_METAPLOT(
         rmetaplot_ch
     )
+    ch_versions = ch_versions.mix(R_METAPLOT.out.versions.first())
 
     KRONA_KRONADB();
+    ch_versions = ch_versions.mix(KRONA_KRONADB.out.versions.first())
     KRONA_KTIMPORTTAXONOMY(
         METAMAPS_CLASSIFY.out.classkrona,
         KRONA_KRONADB.out.db
     )
+    ch_versions = ch_versions.mix(KRONA_KTIMPORTTAXONOMY.out.versions.first())
 
     reffasta_ch=(R_METAPLOT.out.reporttsv.join(METAMAPS_CLASSIFY.out.classem)).join(HUMAN_MAPPING.out.nohumanreads)
     //reffasta_ch.view()
@@ -250,17 +254,20 @@ workflow METATROPICS {
     SEQTK_SUBSEQ(
         fastq_ch.join(headers_ch)
     )
+    ch_versions = ch_versions.mix(SEQTK_SUBSEQ.out.versions.first())
     //SEQTK_SUBSEQ.out.sequences.view()
 
     //SEQTK_SUBSEQ.out.sequences.join(REFFIX_FASTA.out.fixedseqref).view()
     MEDAKA(
         SEQTK_SUBSEQ.out.sequences.join(REFFIX_FASTA.out.fixedseqref)
     )
+    ch_versions = ch_versions.mix(MEDAKA.out.versions.first())
     //MEDAKA.out.bamfiles.view()
 
     SAMTOOLS_COVERAGE(
         MEDAKA.out.bamfiles
     )
+    ch_versions = ch_versions.mix(SAMTOOLS_COVERAGE.out.versions.first())
     //SAMTOOLS_COVERAGE.out.coverage.view()
 
     //MEDAKA.out.bamfiles.join(REFFIX_FASTA.out.fixedseqref).view()
@@ -270,12 +277,14 @@ workflow METATROPICS {
         MEDAKA.out.bamfiles.join(REFFIX_FASTA.out.fixedseqref),
         savempileup
     )
+    ch_versions = ch_versions.mix(IVAR_CONSENSUS.out.versions.first())
     //IVAR_CONSENSUS.out.fasta.view()
 
     //IVAR_CONSENSUS.out.fasta.join(REFFIX_FASTA.out.fixedseqref).view()
     HOMOPOLISH_POLISHING(
         IVAR_CONSENSUS.out.fasta.join(REFFIX_FASTA.out.fixedseqref)
     )
+    ch_versions = ch_versions.mix(HOMOPOLISH_POLISHING.out.versions.first())
     //HOMOPOLISH_POLISHING.out.polishconsensus.view()
 
 
@@ -286,7 +295,7 @@ workflow METATROPICS {
     }//.view()
 
     //covcon_ch.combine(R_METAPLOT.out.reporttsv, by: 0).view()
-    
+
     addingdepthin_ch = (covcon_ch.combine(R_METAPLOT.out.reporttsv, by: 0)).map { entry ->
         def id = entry[0].id
         def singleEnd = entry[0].single_end
@@ -297,7 +306,7 @@ workflow METATROPICS {
     ADDING_DEPTH(
         addingdepthin_ch
     )
-    
+
     //(ADDING_DEPTH.out.repdepth.map{it[1]}).collect().view()
     FINAL_REPORT(
         (ADDING_DEPTH.out.repdepth.map{it[1]}).collect()
@@ -307,27 +316,8 @@ workflow METATROPICS {
     BAM_READCOUNT(
         MEDAKA.out.bamfiles.join(REFFIX_FASTA.out.fixedseqref)
     )
+    //ch_versions = ch_versions.mix(BAM_READCOUNT.out.versions.first())
     //BAM_READCOUNT.out.bamcount.view()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     ch_versions = ch_versions.mix(HUMAN_MAPPING.out.versionsmini)

@@ -39,7 +39,7 @@ process METAMAPS_CLASSIFY {
     tuple val(meta), path("*.EM.WIMP"), emit: classWIMP
     tuple val(meta), path("*.EM.contigCoverage"), emit: classcov
 
-    //path "versions.yml"           , emit: versions
+    path "versions.yml"           , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -58,10 +58,10 @@ process METAMAPS_CLASSIFY {
     // TODO nf-core: Please indent the command appropriately (4 spaces!!) to help with readability ;)
     """
     metamaps classify --mappings ${prefix}_classification_results $args
-    
-    //cat <<-END_VERSIONS > versions.yml
-    //"${task.process}":
-    //    metamaps_classify: \$(echo \$(metamaps --help) | grep MetaMaps | perl -p -e 's/MetaMaps v //g' )
-    //END_VERSIONS
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        metamaps_classify: \$(echo \$(metamaps --help) | grep MetaMaps | perl -p -e 's/MetaMaps v |Simul.+//g' )
+    END_VERSIONS
     """
 }

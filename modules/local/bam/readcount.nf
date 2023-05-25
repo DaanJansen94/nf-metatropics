@@ -41,7 +41,7 @@ process BAM_READCOUNT {
     // TODO nf-core: Named file extensions MUST be emitted for ALL output channels
     tuple val(meta), path("*.bamcount.out"), path("*.bamcount.error"), emit: bamcount
     // TODO nf-core: List additional required output channels/values here
-    path "versions.yml"           , emit: versions
+    //path "versions.yml"           , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -60,10 +60,9 @@ process BAM_READCOUNT {
     // TODO nf-core: Please indent the command appropriately (4 spaces!!) to help with readability ;)
     """
     bam-readcount -w1 -f $ref $bam > ${prefix}.bamcount.out 2> ${prefix}.bamcount.error
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        bam: \$(echo \$(bam-readcount -v 2>&1) | sed 's/^.*samtools //; s/Using.*\$//' ))
-    END_VERSIONS
     """
+    //cat <<-END_VERSIONS > versions.yml
+    //"${task.process}":
+    //    bam: \$(echo \$(bam-readcount -v 2>&1) | sed 's/^.*samtools //; s/Using.*\$//' ))
+    //END_VERSIONS
 }

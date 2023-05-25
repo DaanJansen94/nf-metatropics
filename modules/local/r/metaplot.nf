@@ -51,7 +51,7 @@ process R_METAPLOT {
     // TODO nf-core: Named file extensions MUST be emitted for ALL output channels
     //tuple val(meta), path("*.bam"), emit: bam
     // TODO nf-core: List additional required output channels/values here
-    //path "versions.yml"           , emit: versions
+    path "versions.yml"           , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -81,5 +81,10 @@ process R_METAPLOT {
     //END_VERSIONS
     """
     plotMappingSummary.R ${prefix}_classification_results $args
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        R used to plots: \$(echo \$(R --version) | perl -p -e 's/R version //g' | perl -p -e 's/ .+//g' )
+    END_VERSIONS
     """
 }
