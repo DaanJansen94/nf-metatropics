@@ -1,6 +1,6 @@
 process MEDAKA {
     tag "${meta.id}.${meta.virus}"
-    label 'process_medium'
+    label 'process_single'
 
     conda "bioconda::medaka=1.4.4"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?

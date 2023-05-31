@@ -10,7 +10,7 @@
             "type": "object",
             "fa_icon": "fas fa-terminal",
             "description": "Define where the pipeline should find input data and save output data.",
-            "required": ["input", "input_dir", "outdir", "input_fastq"],
+            "required": ["outdir"],
             "properties": {
                 "input": {
                     "type": "string",
@@ -26,11 +26,6 @@
                     "type": "string",
                     "default": "None",
                     "description": "Input directory with fast5 or fastq files. If fastq files, they should be one for each sample and named for instance as barcode01.fastq"
-                },
-                "input_fastq": {
-                    "type": "string",
-                    "default": "None",
-                    "description": "Path to comma-separated file containing information about the samples in the experiment."
                 },
                 "outdir": {
                     "type": "string",
@@ -302,11 +297,6 @@
                     "default": "None",
                     "description": "Path for the MetaMaps database for read classification."
                 },
-                "hostfasta": {
-                    "type": "string",
-                    "default": "None",
-                    "description": "Path for the genome fasta file of the host of the samples."
-                },
                 "nrdb": {
                     "type": "string",
                     "default": "None",
@@ -319,9 +309,24 @@
                 "pair": {
                     "type": "boolean",
                     "description": "If barcodes were added at both sides of a read (true) or only at one side (false)."
+                },
+                "quality": {
+                    "type": "integer",
+                    "default": 7,
+                    "description": "Minimum quality for a base to build the consensus"
+                },
+                "agreement": {
+                    "type": "number",
+                    "default": 0.7,
+                    "description": "Minimum base frequency to be called without ambiguity"
+                },
+                "depth": {
+                    "type": "integer",
+                    "default": 5,
+                    "description": "Minimum depth of a position to build the consensus"
                 }
             },
-            "required": ["dbmeta", "hostfasta"]
+            "required": ["dbmeta"]
         }
     },
     "allOf": [

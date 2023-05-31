@@ -1,6 +1,6 @@
 process IVAR_CONSENSUS {
     tag "${meta.id}.${meta.virus}"
-    label 'process_medium'
+    label 'process_single'
 
     conda "bioconda::ivar=1.4"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?

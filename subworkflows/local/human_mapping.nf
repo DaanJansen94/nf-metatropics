@@ -14,7 +14,7 @@ workflow HUMAN_MAPPING {
     main:
     MINIMAP2_ALIGN(
         readsONT,
-        params.hostfasta,
+        params.fasta,
         true,
         false,
         false

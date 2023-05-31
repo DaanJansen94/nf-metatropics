@@ -51,7 +51,7 @@ include { HUMAN_MAPPING } from '../subworkflows/local/human_mapping'
 //
 // MODULE: Installed directly from nf-core/modules
 //
-include { FASTQC                      } from '../modules/nf-core/fastqc/main'
+//include { FASTQC                      } from '../modules/nf-core/fastqc/main'
 include { MULTIQC                     } from '../modules/nf-core/multiqc/main'
 include { CUSTOM_DUMPSOFTWAREVERSIONS } from '../modules/nf-core/custom/dumpsoftwareversions/main'
 include { GUPPY_ONT                   } from '../modules/local/guppy/ont'
@@ -73,6 +73,8 @@ include { HOMOPOLISH_POLISHING        } from '../modules/local/homopolish/polish
 include { ADDING_DEPTH                } from '../modules/local/adding_depth'
 include { FINAL_REPORT                } from '../modules/local/final_report'
 include { BAM_READCOUNT               } from '../modules/local/bam/readcount'
+include { MAFFT_ALIGN                 } from '../modules/local/mafft/align'
+include { SNIPIT_SNPPLOT              } from '../modules/local/snipit/snpplot'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -91,32 +93,34 @@ workflow METATROPICS {
     //
     // SUBWORKFLOW: Read in samplesheet, validate and stage input files
     //
-    INPUT_CHECK (
-        ch_input
-    )
-    ch_versions = ch_versions.mix(INPUT_CHECK.out.versions)
+    //INPUT_CHECK (
+    //    ch_input
+    //)
+    //ch_versions = ch_versions.mix(INPUT_CHECK.out.versions)
     //INPUT_CHECK.out.reads.map{it[1]}.view()
 
     //
     // MODULE: Run FastQC
     //
-    FASTQC (
-        INPUT_CHECK.out.reads
-    )
-    ch_versions = ch_versions.mix(FASTQC.out.versions.first())
+    //FASTQC (
+    //    INPUT_CHECK.out.reads
+    //)
+    //ch_versions = ch_versions.mix(FASTQC.out.versions.first())
 
     //
     //MODULES_DEVELOPED_BY_ANTONIO
     //
-    ch_input2 = params.input_fastq
+    //ch_input2 = params.input_fastq
     INPUT_CHECK_METATROPICS{
-        ch_input2
+        ch_input
+        //ch_input2
     }
     //INPUT_CHECK_METATROPICS.out.reads.view()
     //ch_sample = INPUT_CHECK_METATROPICS.out.reads.map{tuple(it[1],it[0])}
     //ch_sample.view()
 
     if(params.basecall==true){
+        if (params.input_dir==null) { exit 1, 'FAST5 input dir not specified!'}
         ch_sample = INPUT_CHECK_METATROPICS.out.reads.map{tuple(it[1],it[0])}
 
         inFast5 = channel.fromPath(params.input_dir)
@@ -217,32 +221,41 @@ workflow METATROPICS {
 
     //REF_FASTA.out.headereads
     //REF_FASTA.out.allreads.view()
-    //REF_FASTA.out.virusout.view()
+    REF_FASTA.out.seqref.view()
 
     //SEQTK_SUBSEQ
+    //headers_ch = REF_FASTA.out.headereads.map { entry ->
     headers_ch = REF_FASTA.out.headereads.flatMap { entry ->
         def id = entry[0].id
         def singleEnd = entry[0].single_end
+        //def virus = entry[1].getBaseName().replaceFirst(/.+\./,"")
+        //[[id: id, single_end: singleEnd, virus: virus], entry[1]]
         entry[1].collect { virus ->
-            [[id: id, single_end: singleEnd, virus: (virus.getBaseName()).replaceFirst(/.+\./,"")], "${virus}"]
+            [[id: id, single_end: singleEnd, virus: virus.getBaseName().replaceFirst(/.+\./,"")], "${virus}"]
         }
-    }//.view()
+    }.view()
 
+    //fasta_ch = REF_FASTA.out.seqref.map { entry ->
     fasta_ch = REF_FASTA.out.seqref.flatMap { entry ->
         def id = entry[0].id
         def singleEnd = entry[0].single_end
+        //def virus = entry[1].getBaseName().replaceFirst(/\.REF+/,"").replaceFirst(/.+\./,"")
+        //[[id: id, single_end: singleEnd, virus: virus], entry[1]]
         entry[1].collect { virus ->
             [[id: id, single_end: singleEnd, virus: ((virus.getBaseName()).replaceFirst(/\.REF+/,"")).replaceFirst(/.+\./,"")], "${virus}"]
         }
-    }//.view()
+    }.view()
 
+    //fastq_ch = REF_FASTA.out.allreads.map { entry ->
     fastq_ch = REF_FASTA.out.allreads.flatMap { entry ->
         def id = entry[0].id
         def singleEnd = entry[0].single_end
+        //def virus = entry[1].getBaseName().replaceFirst(/.+\./,"")
+        //[[id: id, single_end: singleEnd, virus: virus], entry[1]]
         entry[1].collect { virus ->
-            [[id: id, single_end: singleEnd, virus: (virus.getBaseName()).replaceFirst(/.+\./,"")], "${virus}"]
+            [[id: id, single_end: singleEnd, virus: virus.getBaseName().replaceFirst(/.+\./,"")], "${virus}"]
         }
-    }//.view()
+    }.view()
 
     REFFIX_FASTA(
         fasta_ch
@@ -286,8 +299,14 @@ workflow METATROPICS {
     )
     ch_versions = ch_versions.mix(HOMOPOLISH_POLISHING.out.versions.first())
     //HOMOPOLISH_POLISHING.out.polishconsensus.view()
-
-
+    //HOMOPOLISH_POLISHING.out.polishconsensus.join(REFFIX_FASTA.out.fixedseqref).last().view()
+    group_virus_and_ref_ch = (HOMOPOLISH_POLISHING.out.polishconsensus).map { entry ->
+        def id = entry[0].id
+        def singleEnd = entry[0].single_end
+        def virus = entry[0].virus
+        //def fasta = entry[1],entry[2]
+        [[virus: virus], entry[1]]
+    }.groupTuple()//.view()
 
     //covcon_ch = SAMTOOLS_COVERAGE.out.coverage.join(HOMOPOLISH_POLISHING.out.polishconsensus)
     covcon_ch = (SAMTOOLS_COVERAGE.out.coverage.join(HOMOPOLISH_POLISHING.out.polishconsensus)).map { entry ->
@@ -319,6 +338,30 @@ workflow METATROPICS {
     //ch_versions = ch_versions.mix(BAM_READCOUNT.out.versions.first())
     //BAM_READCOUNT.out.bamcount.view()
 
+    MAFFT_ALIGN(
+        group_virus_and_ref_ch,
+        params.outdir + "/reffix"
+    )
+    //MAFFT_ALIGN.out.aln.view()
+    ch_versions = ch_versions.mix(MAFFT_ALIGN.out.versions.first())
+
+    SNIPIT_SNPPLOT(
+        MAFFT_ALIGN.out.aln
+    )
+    //SNIPIT_SNPPLOT.out.plot.view()
+    ch_versions = ch_versions.mix(SNIPIT_SNPPLOT.out.versions.first())
+
+
+
+
+
+
+
+
+
+
+
+
 
     ch_versions = ch_versions.mix(HUMAN_MAPPING.out.versionsmini)
     ch_versions = ch_versions.mix(HUMAN_MAPPING.out.versionssamsort)
@@ -341,7 +384,7 @@ workflow METATROPICS {
     ch_multiqc_files = ch_multiqc_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
     ch_multiqc_files = ch_multiqc_files.mix(ch_methods_description.collectFile(name: 'methods_description_mqc.yaml'))
     ch_multiqc_files = ch_multiqc_files.mix(CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect())
-    ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]}.ifEmpty([]))
+    //ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]}.ifEmpty([]))
     ch_multiqc_files = ch_multiqc_files.mix(FASTP.out.json.collect{it[1]}.ifEmpty([]))
     ch_multiqc_files = ch_multiqc_files.mix(NANOPLOT.out.txt.collect{it[1]}.ifEmpty([]))
 

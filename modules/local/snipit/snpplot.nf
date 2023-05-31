@@ -15,22 +15,18 @@
 // TODO nf-core: Optional inputs are not currently supported by Nextflow. However, using an empty
 //               list (`[]`) instead of a file can be used to work around this issue.
 
-process GUPPY_ONT {
-    //tag '$bam'
+process SNIPIT_SNPPLOT {
+    tag "$meta.virus"
     label 'process_single'
 
     // TODO nf-core: List required Conda package(s).
     //               Software MUST be pinned to channel (i.e. "bioconda"), version (i.e. "1.10").
     //               For Conda, the build (i.e. "h9402c20_2") must be EXCLUDED to support installation on different operating systems.
     // TODO nf-core: See section in main README for further information regarding finding and adding container addresses to the section below.
-    //conda "YOUR-TOOL-HERE"
-    //container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-    //    'https://depot.galaxyproject.org/singularity/YOUR-TOOL-HERE':
-    //    'quay.io/biocontainers/YOUR-TOOL-HERE' }"
-    container "/home/antonio/metatropics/singularity/recipes/images/guppy.sif"
-    containerOptions "${ workflow.containerEngine == "singularity" ? '--nv':
-                ( workflow.containerEngine == "docker" ? '--gpus all': null ) }"
-
+    conda "bioconda::snipit=1.1.2"
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'https://depot.galaxyproject.org/singularity/snipit%3A1.1.2--pyhdfd78af_0':
+        'quay.io/biocontainers/snipit' }"
 
     input:
     // TODO nf-core: Where applicable all sample-specific information e.g. "id", "single_end", "read_group"
@@ -39,12 +35,12 @@ process GUPPY_ONT {
     //               https://github.com/nf-core/modules/blob/master/modules/nf-core/bwa/index/main.nf
     // TODO nf-core: Where applicable please provide/convert compressed files as input/output
     //               e.g. "*.fastq.gz" and NOT "*.fastq", "*.bam" and NOT "*.sam" etc.
-    path inputF
+    tuple val(meta), path(aln)
 
     output:
     // TODO nf-core: Named file extensions MUST be emitted for ALL output channels
-    //path "*.bam", emit: bam
-    path "pass", emit: basecalling_ch
+    tuple val(meta), path("*.svg"), emit: plot
+    tuple val(meta), path("*.csv"), emit: csv
     // TODO nf-core: List additional required output channels/values here
     path "versions.yml"           , emit: versions
 
@@ -53,7 +49,7 @@ process GUPPY_ONT {
 
     script:
     def args = task.ext.args ?: ''
-
+    def prefix = task.ext.prefix ?: "${meta.virus}"
     // TODO nf-core: Where possible, a command MUST be provided to obtain the version number of the software e.g. 1.10
     //               If the software is unable to output a version number on the command-line then it can be manually specified
     //               e.g. https://github.com/nf-core/modules/blob/master/modules/nf-core/homer/annotatepeaks/main.nf
@@ -63,22 +59,14 @@ process GUPPY_ONT {
     //               using the Nextflow "task" variable e.g. "--threads $task.cpus"
     // TODO nf-core: Please replace the example samtools command below with your module's command
     // TODO nf-core: Please indent the command appropriately (4 spaces!!) to help with readability ;)
-    //samtools \\
-    //    sort \\
-    //    $args \\
-    //    -@ $task.cpus \\
-    //    $bam
-    //guppy: \$(guppy_basecaller --version 2>&1 | head -n 1 | sed 's/^. Guppy.*plc\.//g')
-    //mkdir $params.outdir
     """
-    guppy_basecaller -i $inputF -s $params.outdir -c $params.model --chunks_per_runner 160 --gpu_runners_per_device 4 -x "auto"
-    mv $params.outdir/pass pass
-
-
+    snipit $aln --size-option scale -d snipit -o alignment -f svg
+    cp snipit/snps.csv ${prefix}.csv
+    cp snipit/alignment.svg ${prefix}.svg
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        guppy_basecaller: \$(echo \$(guppy_basecaller --version) | head -n 1| perl -p -e 's/.+Version //g' | perl -p -e 's/,.+//g')
+        snipit: \$(echo \$(snipit --version 2>&1) | sed 's/^.*snipit //')
     END_VERSIONS
     """
 }
