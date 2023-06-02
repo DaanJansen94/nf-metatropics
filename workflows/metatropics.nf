@@ -128,12 +128,10 @@ workflow METATROPICS {
         GUPPY_ONT(
             inFast5
         )
-        ch_versions = ch_versions.mix(GUPPY_ONT.out.versions)
 
         GUPPYDEMULTI_DEMULTIPLEXING(
             GUPPY_ONT.out.basecalling_ch
         )
-        ch_versions = ch_versions.mix(GUPPYDEMULTI_DEMULTIPLEXING.out.versions)
 
         ch_barcode = GUPPYDEMULTI_DEMULTIPLEXING.out.barcodeReads.flatten().map{file -> tuple(file.simpleName, file)}
         ch_sample_barcode = ch_sample.join(ch_barcode)
@@ -145,6 +143,9 @@ workflow METATROPICS {
         )
         //FIX.out.reads.view()
         //FIX.out.reads.map{it[1]}.view()
+
+        ch_versions = ch_versions.mix(GUPPY_ONT.out.versions)
+        ch_versions = ch_versions.mix(GUPPYDEMULTI_DEMULTIPLEXING.out.versions)
     }
     else if(params.basecall==false){
         ch_sample = INPUT_CHECK_METATROPICS.out.reads.map{tuple(it[1].replaceFirst(/\/.+\//,""),it[0],it[1])}
@@ -163,13 +164,11 @@ workflow METATROPICS {
         fastp_save_trimmed_fail,
         []
     )
-    ch_versions = ch_versions.mix(FASTP.out.versions.first())
     //FASTP.out.reads.view()
 
     NANOPLOT(
         FASTP.out.reads
     )
-    ch_versions = ch_versions.mix(NANOPLOT.out.versions.first())
     //NANOPLOT.out.txt.view()
 
     HUMAN_MAPPING(
@@ -180,7 +179,7 @@ workflow METATROPICS {
     METAMAPS_MAP(
         HUMAN_MAPPING.out.nohumanreads
     )
-    ch_versions = ch_versions.mix(METAMAPS_MAP.out.versions.first())
+
 
     meta_with_othermeta = METAMAPS_MAP.out.metaclass.join(METAMAPS_MAP.out.otherclassmeta)
     meta_with_othermeta_with_metalength = meta_with_othermeta.join(METAMAPS_MAP.out.metalength)
@@ -190,7 +189,7 @@ workflow METATROPICS {
     METAMAPS_CLASSIFY(
         meta_with_othermeta_with_metalength_with_parameter
     )
-    ch_versions = ch_versions.mix(METAMAPS_CLASSIFY.out.versions.first())
+
 
     //METAMAPS_MAP.out.metaclass.view()
     //NANOPLOT.out.totalreads.view()
@@ -202,15 +201,14 @@ workflow METATROPICS {
     R_METAPLOT(
         rmetaplot_ch
     )
-    ch_versions = ch_versions.mix(R_METAPLOT.out.versions.first())
+
 
     KRONA_KRONADB();
-    ch_versions = ch_versions.mix(KRONA_KRONADB.out.versions.first())
+
     KRONA_KTIMPORTTAXONOMY(
         METAMAPS_CLASSIFY.out.classkrona,
         KRONA_KRONADB.out.db
     )
-    ch_versions = ch_versions.mix(KRONA_KTIMPORTTAXONOMY.out.versions.first())
 
     reffasta_ch=(R_METAPLOT.out.reporttsv.join(METAMAPS_CLASSIFY.out.classem)).join(HUMAN_MAPPING.out.nohumanreads)
     //reffasta_ch.view()
@@ -221,33 +219,78 @@ workflow METATROPICS {
 
     //REF_FASTA.out.headereads
     //REF_FASTA.out.allreads.view()
-    REF_FASTA.out.seqref.view()
+    //REF_FASTA.out.seqref.view()
 
-    //SEQTK_SUBSEQ
-    //headers_ch = REF_FASTA.out.headereads.map { entry ->
-    headers_ch = REF_FASTA.out.headereads.flatMap { entry ->
+    //Fixing channels in order to break them for each pathogen present in the sample.
+    //Curiously, when the channel has only one file, it needs to be fixed e.g.([[metada][file]]), otherwise flatMap and collect
+    //get the paht elements e.g.(home,work,randaom_dir,filename) of the file instead of the whole path to extract the taxonomy id.
+    //I used the number 30 below as in this scenario with only on file, the function size retuns the file size instead of the number of
+    //files in my emission of the channel.
+
+    fixingheader_ch = REF_FASTA.out.headereads.map {entry ->
         def id = entry[0].id
         def singleEnd = entry[0].single_end
+        def files = entry[1]
+        if(entry[1].size()>=30){
+            [[id: id,single_end: singleEnd],[files]]
+        }else{
+            [[id: id,single_end: singleEnd],files]
+        }
+    }//.view()
+
+    fixiseqref_ch = REF_FASTA.out.seqref.map {entry ->
+        def id = entry[0].id
+        def singleEnd = entry[0].single_end
+        def files = entry[1]
+        if(entry[1].size()>=30){
+            [[id: id,single_end: singleEnd],[files]]
+        }else{
+            [[id: id,single_end: singleEnd],files]
+        }
+    }
+
+    fixingallreads_ch = REF_FASTA.out.allreads.map {entry ->
+        def id = entry[0].id
+        def singleEnd = entry[0].single_end
+        def files = entry[1]
+        if(entry[1].size()>=30){
+            [[id: id,single_end: singleEnd],[files]]
+        }else{
+            [[id: id,single_end: singleEnd],files]
+        }
+    }
+
+
+    headers_ch = fixingheader_ch.flatMap { entry ->
+    //headers_ch = REF_FASTA.out.headereads.flatMap { entry ->
+        def id = entry[0].id
+        def singleEnd = entry[0].single_end
+        //def tm = entry[1].toList().findAll{~/\.reads/}.size()
         //def virus = entry[1].getBaseName().replaceFirst(/.+\./,"")
         //[[id: id, single_end: singleEnd, virus: virus], entry[1]]
         entry[1].collect { virus ->
+            //[[id: id, single_end: singleEnd, virus: virus.getBaseName().replaceFirst(/.+\./,""),size: tm], "${virus}"]
             [[id: id, single_end: singleEnd, virus: virus.getBaseName().replaceFirst(/.+\./,"")], "${virus}"]
         }
-    }.view()
 
-    //fasta_ch = REF_FASTA.out.seqref.map { entry ->
-    fasta_ch = REF_FASTA.out.seqref.flatMap { entry ->
+    }//.view()
+
+     fasta_ch = fixiseqref_ch.flatMap { entry ->
         def id = entry[0].id
         def singleEnd = entry[0].single_end
+        def tm = entry[1].size()
+        //if(entry[1].size()==30442){
         //def virus = entry[1].getBaseName().replaceFirst(/\.REF+/,"").replaceFirst(/.+\./,"")
         //[[id: id, single_end: singleEnd, virus: virus], entry[1]]
-        entry[1].collect { virus ->
-            [[id: id, single_end: singleEnd, virus: ((virus.getBaseName()).replaceFirst(/\.REF+/,"")).replaceFirst(/.+\./,"")], "${virus}"]
-        }
-    }.view()
+            entry[1].collect { virus ->
+                //[[id: id, single_end: singleEnd, virus: ((virus.getBaseName()).replaceFirst(/\.REF+/,"")).replaceFirst(/.+\./,""),size: tm],  "${virus}"]
+                [[id: id, single_end: singleEnd, virus: ((virus.getBaseName()).replaceFirst(/\.REF+/,"")).replaceFirst(/.+\./,"")],  "${virus}"]
+            }
+        //}
+    }//.view()
 
     //fastq_ch = REF_FASTA.out.allreads.map { entry ->
-    fastq_ch = REF_FASTA.out.allreads.flatMap { entry ->
+    fastq_ch = fixingallreads_ch.flatMap { entry ->
         def id = entry[0].id
         def singleEnd = entry[0].single_end
         //def virus = entry[1].getBaseName().replaceFirst(/.+\./,"")
@@ -256,6 +299,9 @@ workflow METATROPICS {
             [[id: id, single_end: singleEnd, virus: virus.getBaseName().replaceFirst(/.+\./,"")], "${virus}"]
         }
     }.view()
+
+//Ending of the fix channels per pathogen.
+
 
     REFFIX_FASTA(
         fasta_ch
@@ -267,20 +313,20 @@ workflow METATROPICS {
     SEQTK_SUBSEQ(
         fastq_ch.join(headers_ch)
     )
-    ch_versions = ch_versions.mix(SEQTK_SUBSEQ.out.versions.first())
+
     //SEQTK_SUBSEQ.out.sequences.view()
 
     //SEQTK_SUBSEQ.out.sequences.join(REFFIX_FASTA.out.fixedseqref).view()
     MEDAKA(
         SEQTK_SUBSEQ.out.sequences.join(REFFIX_FASTA.out.fixedseqref)
     )
-    ch_versions = ch_versions.mix(MEDAKA.out.versions.first())
+
     //MEDAKA.out.bamfiles.view()
 
     SAMTOOLS_COVERAGE(
         MEDAKA.out.bamfiles
     )
-    ch_versions = ch_versions.mix(SAMTOOLS_COVERAGE.out.versions.first())
+
     //SAMTOOLS_COVERAGE.out.coverage.view()
 
     //MEDAKA.out.bamfiles.join(REFFIX_FASTA.out.fixedseqref).view()
@@ -290,14 +336,14 @@ workflow METATROPICS {
         MEDAKA.out.bamfiles.join(REFFIX_FASTA.out.fixedseqref),
         savempileup
     )
-    ch_versions = ch_versions.mix(IVAR_CONSENSUS.out.versions.first())
+
     //IVAR_CONSENSUS.out.fasta.view()
 
     //IVAR_CONSENSUS.out.fasta.join(REFFIX_FASTA.out.fixedseqref).view()
     HOMOPOLISH_POLISHING(
         IVAR_CONSENSUS.out.fasta.join(REFFIX_FASTA.out.fixedseqref)
     )
-    ch_versions = ch_versions.mix(HOMOPOLISH_POLISHING.out.versions.first())
+
     //HOMOPOLISH_POLISHING.out.polishconsensus.view()
     //HOMOPOLISH_POLISHING.out.polishconsensus.join(REFFIX_FASTA.out.fixedseqref).last().view()
     group_virus_and_ref_ch = (HOMOPOLISH_POLISHING.out.polishconsensus).map { entry ->
@@ -343,26 +389,28 @@ workflow METATROPICS {
         params.outdir + "/reffix"
     )
     //MAFFT_ALIGN.out.aln.view()
-    ch_versions = ch_versions.mix(MAFFT_ALIGN.out.versions.first())
+
 
     SNIPIT_SNPPLOT(
         MAFFT_ALIGN.out.aln
     )
     //SNIPIT_SNPPLOT.out.plot.view()
+
+
+    ch_versions = ch_versions.mix(FASTP.out.versions.first())
+    ch_versions = ch_versions.mix(NANOPLOT.out.versions.first())
+    ch_versions = ch_versions.mix(METAMAPS_MAP.out.versions.first())
+    ch_versions = ch_versions.mix(METAMAPS_CLASSIFY.out.versions.first())
+    ch_versions = ch_versions.mix(R_METAPLOT.out.versions.first())
+    ch_versions = ch_versions.mix(KRONA_KRONADB.out.versions.first())
+    ch_versions = ch_versions.mix(KRONA_KTIMPORTTAXONOMY.out.versions.first())
+    ch_versions = ch_versions.mix(SEQTK_SUBSEQ.out.versions.first())
+    ch_versions = ch_versions.mix(MEDAKA.out.versions.first())
+    ch_versions = ch_versions.mix(SAMTOOLS_COVERAGE.out.versions.first())
+    ch_versions = ch_versions.mix(IVAR_CONSENSUS.out.versions.first())
+    ch_versions = ch_versions.mix(HOMOPOLISH_POLISHING.out.versions.first())
+    ch_versions = ch_versions.mix(MAFFT_ALIGN.out.versions.first())
     ch_versions = ch_versions.mix(SNIPIT_SNPPLOT.out.versions.first())
-
-
-
-
-
-
-
-
-
-
-
-
-
     ch_versions = ch_versions.mix(HUMAN_MAPPING.out.versionsmini)
     ch_versions = ch_versions.mix(HUMAN_MAPPING.out.versionssamsort)
     ch_versions = ch_versions.mix(HUMAN_MAPPING.out.versionssamfastq)
