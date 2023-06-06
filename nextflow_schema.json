@@ -324,6 +324,16 @@
                     "type": "integer",
                     "default": 5,
                     "description": "Minimum depth of a position to build the consensus"
+                },
+                "front": {
+                    "type": "integer",
+                    "default": 0,
+                    "description": "Number of bases to delete at 5 prime of the read"
+                },
+                "tail": {
+                    "type": "integer",
+                    "default": 0,
+                    "description": "Number of bases to delete at 3 prime of the read"
                 }
             },
             "required": ["dbmeta"]

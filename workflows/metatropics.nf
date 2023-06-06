@@ -156,6 +156,7 @@ workflow METATROPICS {
         )
         //FIX.out.reads.view()
     }
+    //FIX.out.reads.view()
 
     fastp_save_trimmed_fail = false
     FASTP(
@@ -167,7 +168,8 @@ workflow METATROPICS {
     //FASTP.out.reads.view()
 
     NANOPLOT(
-        FASTP.out.reads
+        FIX.out.reads
+        //FASTP.out.reads
     )
     //NANOPLOT.out.txt.view()
 
@@ -298,7 +300,7 @@ workflow METATROPICS {
         entry[1].collect { virus ->
             [[id: id, single_end: singleEnd, virus: virus.getBaseName().replaceFirst(/.+\./,"")], "${virus}"]
         }
-    }.view()
+    }//.view()
 
 //Ending of the fix channels per pathogen.
 

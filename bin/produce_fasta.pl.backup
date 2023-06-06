@@ -30,22 +30,18 @@ while($line=<REP>){
     $line=~s/\"//g;
     #print $sample."\t".$line."\n";
     my @virus = split(/\t/,$line);
-    my $acc = $virus[2];
-    $acc=~s/\./_/g;
     if($virus[5]>=$min){
       $count++;
     #if($virus[5]>=0.1){
     #if($virus[5]>=0.01){
-      system("grep -w $virus[2] $readsEM | awk '{print \$1}' | sort | uniq > $sample.$acc.reads");
-      system("grep -w $virus[2] $DB > temp.headers");
-      my $taxID="temp.headers";
-      #chomp($taxID);
-      system("perl -pi -e 's/\>//g' $taxID");
+      system("grep -w $virus[2] $readsEM | awk '{print \$1}' | sort | uniq > $sample.$virus[2].reads");
+      my $taxID=`grep -m 1 -w $virus[2] $DB`;
+      chomp($taxID);
+      $taxID=~s/\>//g;
       #print $taxID."\n";
-      system("samtools faidx $DB -r $taxID > $sample.$acc.REF.fasta");
-      system("cp $fastq $sample.$acc.fastq");
+      system("samtools faidx $DB \"$taxID\" > $sample.$virus[2].REF.fasta");
+      system("cp $fastq $sample.$virus[2].fastq");
       #print("$virus[2]");
-      system("rm $taxID");
     }
 }
 close REP;

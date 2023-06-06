@@ -9,7 +9,7 @@ process FINAL_REPORT {
 
     script:
     """
-    echo -e "Sample\tTaxID\tVirusName\tMappedReads\tFractionMappedReads\tAbundance\tCoverage\tDepthAverage\tConsensusCov\tN_content\tMedianReadIdentities\tMeanReadLength\tMeanBaseQuality" > all.final_report.tsv
+    echo -e "Sample\tAccession\tTaxID\tVirusName\tMappedReads\tFractionMappedReads\tAbundance\tCoverage\tDepthAverage\tConsensusCov\tN_content\tMedianReadIdentities\tMeanReadLength\tMeanBaseQuality" > all.final_report.tsv
     cat *.sdepth.tsv |  grep -v VirusName >> all.final_report.tsv
     """
 }

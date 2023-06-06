@@ -14,7 +14,6 @@ sub updateReport {
   my $id = $inputs[0];
   $id=~s/\.txt|//g;
   $id=~s/.+\.//g;
-  $id=~s/(_[^_]+)_/$1./g;
   #print "$id\n";
 
   my $line = `grep -w $id $inputs[1]`;
@@ -52,7 +51,7 @@ sub updateReport {
   my $N_percent=($N/$samtoolDepth[2])*100;
 
   #my $results = "$parameters[0]\t$parameters[1]\t$parameters[2]\t$parameters[3]\t$parameters[4]\t$parameters[5]\t$parameters[6]\t$samtoolDepth[5]\t$samtoolDepth[6]\t$consensusCov\t$N_percent\t$parameters[9]\t$parameters[10]\t$samtoolDepth[7]\n";
-  my $results = "$parameters[1]\t$parameters[2]\t$parameters[3]\t$parameters[4]\t$parameters[5]\t$parameters[6]\t$parameters[7]\t$samtoolDepth[5]\t$samtoolDepth[6]\t$consensusCov\t$N_percent\t$parameters[10]\t$parameters[11]\t$samtoolDepth[7]\n";
+  my $results = "$parameters[1]\t$parameters[2]\t$parameters[3]\t$parameters[4]\t$parameters[5]\t$parameters[6]\t$samtoolDepth[5]\t$samtoolDepth[6]\t$consensusCov\t$N_percent\t$parameters[9]\t$parameters[10]\t$samtoolDepth[7]\n";
 
   #print "$results";
 
@@ -76,7 +75,7 @@ if(-e $finalFile){
     chomp($line);
     if($line=~m/VirusName/){
       my @temp=split(/\t/,$line);
-      print FIN "$temp[0]\t$temp[1]\t$temp[2]\t$temp[3]\t$temp[4]\t$temp[5]\t$temp[6]\t\"Coverage\"\t\"DepthAverage\"\t\"ConsensusCov\"\t\"N_content\"\t$temp[9]\t$temp[10]\tMeanBaseQuality\n";
+      print FIN "$temp[0]\t$temp[1]\t$temp[2]\t$temp[3]\t$temp[4]\t$temp[5]\t\"Coverage\"\t\"DepthAverage\"\t\"ConsensusCov\"\t\"N_content\"\t$temp[8]\t$temp[9]\tMeanBaseQuality\n";
     }
   close TSV;
   my $update = updateReport($depthSAM,$tsvNF,$consensus);
