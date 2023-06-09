@@ -69,59 +69,37 @@ sudo singularity build samtools_minimap2.sif samtools_minimap2.txt
 
    ```bash
    nextflow run nf-core/metatropics --help
-  ------------------------------------------------------
-                                        ,--./,-.
-        ___     __   __   __   ___     /,-._.--~'
-  |\ | |__  __ /  ` /  \ |__) |__         }  {
-  | \| |       \__, \__/ |  \ |___     \`-._,-`-,
-                                        `._,._,'
-  nf-core/metatropics v1.0dev
-------------------------------------------------------
-Typical pipeline command:
 
-  nextflow run nf-core/metatropics --input samplesheet.csv --genome GRCh37 -profile docker
-
-Input/output options
-  --input                       [string]  Path to comma-separated file containing information about the samples in the experiment.
-  --input_dir                   [string]  Input directory with fast5 or fastq files. If fastq files, they should be one for each sample and named for instance
+  Input/output options
+    --input                       [string]  Path to comma-separated file containing information about the samples in the experiment.
+    --input_dir                   [string]  Input directory with fast5 or fastq files. If fastq files, they should be one for each sample and named for instance
                                           as barcode01.fastq [default: None]
-  --outdir                      [string]  The output directory where the results will be saved. You have to use absolute paths to storage on Cloud
+    --outdir                      [string]  The output directory where the results will be saved. You have to use absolute paths to storage on Cloud
                                           infrastructure.
-  --email                       [string]  Email address for completion summary.
-  --multiqc_title               [string]  MultiQC report title. Printed as page header, used for filename if not otherwise specified.
+    --email                       [string]  Email address for completion summary.
+    --multiqc_title               [string]  MultiQC report title. Printed as page header, used for filename if not otherwise specified.
 
-Reference genome options
-  --genome                      [string]  Name of iGenomes reference.
-  --fasta                       [string]  Path to FASTA genome file.
+  Reference genome options
+    --genome                      [string]  Name of iGenomes reference.
+    --fasta                       [string]  Path to FASTA genome file.
 
-Generic options
-  --multiqc_methods_description [string]  Custom MultiQC yaml file containing HTML including a methods description.
-  --basecall                    [boolean] In case fast5 is the input, that option shoud be true. Default is false.
-  --model                       [string]  In case fast5 is the input, the guppy model for basecalling should be provide. [default:
+  Generic options
+    --multiqc_methods_description [string]  Custom MultiQC yaml file containing HTML including a methods description.
+    --basecall                    [boolean] In case fast5 is the input, that option shoud be true. Default is false.
+    --model                       [string]  In case fast5 is the input, the guppy model for basecalling should be provide. [default:
                                           dna_r9.4.1_450bps_hac.cfg]
-  --minLength                   [integer] Minimum length for a read to be analyzed. [default: 200]
-  --minVirus                    [number]  Minimum virus data frequency in the raw data to be part of the output. [default: 0.001]
-  --usegpu                      [boolean] In case fast5 is the input, the use of GPU Nvidia should be true.
-  --dbmeta                      [string]  Path for the MetaMaps database for read classification. [default: None]
-  --nrdb                        [string]  Path for NCBI NR database to de novo contig annotation [default: None]
-  --trim                        [boolean] Trimming of 28 nucleotides at 3 and 5 prime when SISPA is used.
-  --pair                        [boolean] If barcodes were added at both sides of a read (true) or only at one side (false).
-  --quality                     [integer] Minimum quality for a base to build the consensus [default: 7]
-  --agreement                   [number]  Minimum base frequency to be called without ambiguity [default: 0.7]
-  --depth                       [integer] Minimum depth of a position to build the consensus [default: 5]
-  --front                       [integer] Number of bases to delete at 5 prime of the read [default: 0]
-  --tail                        [integer] Number of bases to delete at 3 prime of the read [default: 0]
-
-!! Hiding 24 params, use --show_hidden_params to show them !!
-------------------------------------------------------
-If you use nf-core/metatropics for your analysis please cite:
-
-* The nf-core framework
-  https://doi.org/10.1038/s41587-020-0439-x
-
-* Software dependencies
-  https://github.com/nf-core/metatropics/blob/master/CITATIONS.md
-
+    --minLength                   [integer] Minimum length for a read to be analyzed. [default: 200]
+    --minVirus                    [number]  Minimum virus data frequency in the raw data to be part of the output. [default: 0.001]
+    --usegpu                      [boolean] In case fast5 is the input, the use of GPU Nvidia should be true.
+    --dbmeta                      [string]  Path for the MetaMaps database for read classification. [default: None]
+    --nrdb                        [string]  Path for NCBI NR database to de novo contig annotation [default: None]
+    --trim                        [boolean] Trimming of 28 nucleotides at 3 and 5 prime when SISPA is used.
+    --pair                        [boolean] If barcodes were added at both sides of a read (true) or only at one side (false).
+    --quality                     [integer] Minimum quality for a base to build the consensus [default: 7]
+    --agreement                   [number]  Minimum base frequency to be called without ambiguity [default: 0.7]
+    --depth                       [integer] Minimum depth of a position to build the consensus [default: 5]
+    --front                       [integer] Number of bases to delete at 5 prime of the read [default: 0]
+    --tail                        [integer] Number of bases to delete at 3 prime of the read [default: 0]
    ```
 
 ## Documentation
