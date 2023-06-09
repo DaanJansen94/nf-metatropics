@@ -1,7 +1,7 @@
 process REF_FASTA {
     tag "$meta.id"
 
-    container "/home/antonio/metatropics/singularity/recipes/images/samtools_minimap2.sif"
+    container "$projectDir/images/samtools_minimap2.sif"
 
     input:
     tuple val(meta), path(report), path(emreads), path(rawfastq)

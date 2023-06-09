@@ -27,7 +27,7 @@ process GUPPYDEMULTI_DEMULTIPLEXING {
     //container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
     //    'https://depot.galaxyproject.org/singularity/YOUR-TOOL-HERE':
     //    'quay.io/biocontainers/YOUR-TOOL-HERE' }"
-    container "/home/antonio/metatropics/singularity/recipes/images/guppy.sif"
+    container "$projectDir/images/guppy.sif"
     containerOptions "${ workflow.containerEngine == "singularity" ? '--nv':
                 ( workflow.containerEngine == "docker" ? '--gpus all': null ) }"
 

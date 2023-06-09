@@ -17,7 +17,7 @@
 
 process GUPPY_ONT {
     //tag '$bam'
-    label 'process_single'
+    label 'process_long'
 
     // TODO nf-core: List required Conda package(s).
     //               Software MUST be pinned to channel (i.e. "bioconda"), version (i.e. "1.10").
@@ -27,7 +27,7 @@ process GUPPY_ONT {
     //container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
     //    'https://depot.galaxyproject.org/singularity/YOUR-TOOL-HERE':
     //    'quay.io/biocontainers/YOUR-TOOL-HERE' }"
-    container "/home/antonio/metatropics/singularity/recipes/images/guppy.sif"
+    container "$projectDir/images/guppy.sif"
     containerOptions "${ workflow.containerEngine == "singularity" ? '--nv':
                 ( workflow.containerEngine == "docker" ? '--gpus all': null ) }"
 

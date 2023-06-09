@@ -6,7 +6,7 @@ AUTHOR AntonioMauroRezende
 
 
 %files
-    /home/antonio/metatropics/antonio_pipeline_NF_development_shiny-GUI/myapp/metatropicsGUI/bin/plotMappingSummary.R /usr/bin
+    plotMappingSummary.R /usr/bin
 
 %post
     apt-get -y update && apt-get install -y locales-all
