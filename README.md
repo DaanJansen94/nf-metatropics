@@ -69,8 +69,7 @@ sudo singularity build samtools_minimap2.sif samtools_minimap2.txt
 
    ```bash
    nextflow run nf-core/metatropics --help
-
-  Input/output options
+   Input/output options
     --input                       [string]  Path to comma-separated file containing information about the samples in the experiment.
     --input_dir                   [string]  Input directory with fast5 or fastq files. If fastq files, they should be one for each sample and named for instance as barcode01.fastq [default: None]
     --outdir                      [string]  The output directory where the results will be saved. You have to use absolute paths to storage on Cloud infrastructure.
