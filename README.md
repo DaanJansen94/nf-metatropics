@@ -75,11 +75,9 @@ sudo singularity build samtools_minimap2.sif samtools_minimap2.txt
     --outdir                      [string]  The output directory where the results will be saved. You have to use absolute paths to storage on Cloud infrastructure.
     --email                       [string]  Email address for completion summary.
     --multiqc_title               [string]  MultiQC report title. Printed as page header, used for filename if not otherwise specified.
-
   Reference genome options
     --genome                      [string]  Name of iGenomes reference.
     --fasta                       [string]  Path to FASTA genome file.
-
   Generic options
     --multiqc_methods_description [string]  Custom MultiQC yaml file containing HTML including a methods description.
     --basecall                    [boolean] In case fast5 is the input, that option shoud be true. Default is false.
