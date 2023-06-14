@@ -341,7 +341,7 @@ workflow METATROPICS {
 
     //IVAR_CONSENSUS.out.fasta.view()
 
-    //IVAR_CONSENSUS.out.fasta.join(REFFIX_FASTA.out.fixedseqref).view()
+    IVAR_CONSENSUS.out.fasta.join(REFFIX_FASTA.out.fixedseqref).view()
     HOMOPOLISH_POLISHING(
         IVAR_CONSENSUS.out.fasta.join(REFFIX_FASTA.out.fixedseqref)
     )
