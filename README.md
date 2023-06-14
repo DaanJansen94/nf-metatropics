@@ -96,6 +96,25 @@ sudo singularity build samtools_minimap2.sif samtools_minimap2.txt
     --tail                        [integer] Number of bases to delete at 3 prime of the read [default: 0]
    ```
 
+   If you have FAST5 as input data, you will need to use the parameters `--input` and `--input_dir` to provide your inputs. The last one is the path for you FAST5 directory: `/home/user/my/path/fast5`. The parameter `--input` receives the path of a csv file with the format below:
+```bash
+ more /home/user/my/input_file.csv
+
+ sample,single_end,barcode
+ sample_name01,True,barcode01
+ sample_name02,True,barcode02
+ sample_name03,True,barcode03
+```
+
+  If you have FASTQ as input data, you will only need to use the parameter `--input` to provide your input. It will receives the path of a csv file with the format below:
+```bash
+ more /home/user/my/input_file.csv
+
+ sample,single_end,barcode
+ sample_name01,True,/home/antonio/metatropics/nf-metatropics/fastq/barcode01.fastq
+ sample_name02,True,/home/antonio/metatropics/nf-metatropics/fastq/barcode02.fastq
+ sample_name03,True,/home/antonio/metatropics/nf-metatropics/fastq/barcode03.fastq
+```
 ## Documentation
 
 The nf-core/metatropics pipeline comes with documentation about the pipeline [usage](https://nf-co.re/metatropics/usage), [parameters](https://nf-co.re/metatropics/parameters) and [output](https://nf-co.re/metatropics/output).
