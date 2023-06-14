@@ -73,20 +73,16 @@ sudo singularity build samtools_minimap2.sif samtools_minimap2.txt
     --input                       [string]  Path to comma-separated file containing information about the samples in the experiment.
     --input_dir                   [string]  Input directory with fast5 or fastq files. If fastq files, they should be one for each sample and named for instance as barcode01.fastq [default: None]
     --outdir                      [string]  The output directory where the results will be saved. You have to use absolute paths to storage on Cloud infrastructure.
-    --email                       [string]  Email address for completion summary.
     --multiqc_title               [string]  MultiQC report title. Printed as page header, used for filename if not otherwise specified.
    Reference genome options
-    --genome                      [string]  Name of iGenomes reference.
     --fasta                       [string]  Path to FASTA genome file.
    Generic options
-    --multiqc_methods_description [string]  Custom MultiQC yaml file containing HTML including a methods description.
     --basecall                    [boolean] In case fast5 is the input, that option shoud be true. Default is false.
     --model                       [string]  In case fast5 is the input, the guppy model for basecalling should be provide. [default:dna_r9.4.1_450bps_hac.cfg]
     --minLength                   [integer] Minimum length for a read to be analyzed. [default: 200]
     --minVirus                    [number]  Minimum virus data frequency in the raw data to be part of the output. [default: 0.001]
     --usegpu                      [boolean] In case fast5 is the input, the use of GPU Nvidia should be true.
     --dbmeta                      [string]  Path for the MetaMaps database for read classification. [default: None]
-    --nrdb                        [string]  Path for NCBI NR database to de novo contig annotation [default: None]
     --trim                        [boolean] Trimming of 28 nucleotides at 3 and 5 prime when SISPA is used.
     --pair                        [boolean] If barcodes were added at both sides of a read (true) or only at one side (false).
     --quality                     [integer] Minimum quality for a base to build the consensus [default: 7]
@@ -97,24 +93,33 @@ sudo singularity build samtools_minimap2.sif samtools_minimap2.txt
    ```
 
    If you have FAST5 as input data, you will need to use the parameters `--input` and `--input_dir` to provide your inputs. The last one is the path for you FAST5 directory: `/home/user/my/path/fast5`. The parameter `--input` receives the path of a csv file with the format below:
-```bash
- more /home/user/my/input_file.csv
+   ```bash
+   more /home/user/my/input_file.csv
 
- sample,single_end,barcode
- sample_name01,True,barcode01
- sample_name02,True,barcode02
- sample_name03,True,barcode03
-```
+   sample,single_end,barcode
+   sample_name01,True,barcode01
+   sample_name02,True,barcode02
+   sample_name03,True,barcode03
+   ```
+   The command line for this case:
+   ```bash
+   nextflow run nf-metatropics/ -profile singularity --input /home/itg.be/arezende/example4.csv --input_dir /home/itg.be/arezende/fast5 --outdir /home/itg.be/arezende/testnf_guppy --fasta /home/itg.be/arezende/databases/chm13v2.0.fa --basecall true --minLength 600 --usegpu true --dbmeta /home/itg.be/arezende/databases/virusDB2 --trim true --pair true -resume
+   ```
 
-  If you have FASTQ as input data, you will only need to use the parameter `--input` to provide your input. It will receives the path of a csv file with the format below:
-```bash
- more /home/user/my/input_file.csv
+   If you have FASTQ as input data, you will only need to use the parameter `--input` to provide your input. It will receives the path of a csv file with the format below:
+   ```bash
+   more /home/user/my/input_file.csv
 
- sample,single_end,barcode
- sample_name01,True,/home/antonio/metatropics/nf-metatropics/fastq/barcode01.fastq
- sample_name02,True,/home/antonio/metatropics/nf-metatropics/fastq/barcode02.fastq
- sample_name03,True,/home/antonio/metatropics/nf-metatropics/fastq/barcode03.fastq
-```
+   sample,single_end,barcode
+   sample_name01,True,/home/antonio/metatropics/nf-metatropics/fastq/barcode01.fastq
+   sample_name02,True,/home/antonio/metatropics/nf-metatropics/fastq/barcode02.fastq
+   sample_name03,True,/home/antonio/metatropics/nf-metatropics/fastq/barcode03.fastq
+   ```
+   The command line for this case:
+   ```bash
+   nextflow run nf-metatropics/ -profile singularity --input /home/itg.be/arezende/example3.csv --outdir /home/itg.be/arezende/testnf_fastq --fasta /home/itg.be/arezende/databases/chm13v2.0.fa --minLength 600 --dbmeta /home/itg.be/arezende/databases/virusDB2 --trim true --pair true -resume
+   ```
+
 ## Documentation
 
 The nf-core/metatropics pipeline comes with documentation about the pipeline [usage](https://nf-co.re/metatropics/usage), [parameters](https://nf-co.re/metatropics/parameters) and [output](https://nf-co.re/metatropics/output).
