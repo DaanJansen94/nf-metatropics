@@ -120,6 +120,35 @@ sudo singularity build samtools_minimap2.sif samtools_minimap2.txt
    nextflow run nf-metatropics/ -profile singularity --input /home/itg.be/arezende/example3.csv --outdir /home/itg.be/arezende/testnf_fastq --fasta /home/itg.be/arezende/databases/chm13v2.0.fa --minLength 600 --dbmeta /home/itg.be/arezende/databases/virusDB2 --trim true --pair true -resume
    ```
 
+   ## Output
+
+<!-- TODO nf-core: Fill in short bullet-pointed list of the default steps in the pipeline -->
+Below one can see the output directories and their description. `guppy` and `guppydemulti` will exist only in case the user has used FAST5 files as input.
+
+1. [`guppy`] - fastq files after the basecalling without being demultiplexed
+2. [`guppydemulti`] - directories and fastq files produced after the demultiplexing
+3. [`fix`] - gziped fastq files for each sample of the run
+3. [`fastp`] - results after trimming analysis performed by FASTP
+4. [`nanoplot`] - quality results for the sequencing data just after demultiplexing
+5. [`minimap2`] - BAM files about mapping against host genome
+6. [`nohuman`] - gziped fastq files without reads mapping to host genome
+7. [`metamaps`] - results from both steps of Metamaps execution for read classification (mapDirectly and Classify)
+8. [`r`] - intermediate table report and graphical PDF report for each sample
+9. [`ref`] - header of the reads and fasta reference genomes for each virus found for each sample
+10. [`krona`] - HTML files for each sample with interactive composition pie chart
+11. [`reffix`] - fasta refence genomes with fixed header for each virus found during the run
+12. [`seqtk`] - gziped fastq file for each set of read classified to a virus for each sample
+13. [`medaka`] - BAM file for each virus with mapping results from the virus genome reference for each sample
+14. [`samtools`] - mapping statistics calculated to BAM files present in the `medaka` directory
+15. [`ivar`] - consensus sequences produced for each virus found in each sample
+16. [`bam`] - detailed statistics for the BAM files from `medaka` directory for each position of virus refence genome
+17. [`homopolish`] - consensus sequence for each virus in each sample polished for the indel variations
+18. [`addingDepth`] - table report for each virus in each sample
+19. [`mafft`] - multiple sequence alignment for each virus for all samples
+20. [`snipit`] - SNP plot generated based on the aligments present in the directory `mafft`
+21. [`multiqc`] - multiqc report for quality and data filtration, and information on sotware versions
+22. [`final`] - final table report for all the run
+23. [`pipeline_info`] - reports on the execution of the pipeline produced by NextFlow
 ## Documentation
 
 The nf-core/metatropics pipeline comes with documentation about the pipeline [usage](https://nf-co.re/metatropics/usage), [parameters](https://nf-co.re/metatropics/parameters) and [output](https://nf-co.re/metatropics/output).
