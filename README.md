@@ -66,7 +66,9 @@ sudo singularity build samtools_minimap2.sif samtools_minimap2.txt
 4. Download database:
 https://zenodo.org/record/8047541
 
-The path for the database needs to be informed to the paremeter `--dbmeta`
+The path for the database needs to be informed to the paremeter `--dbmeta`.
+To uncompress the database, use the command line below:
+
    ```bash
    tar -xzvf virusDB2.tar.gz
    ```
