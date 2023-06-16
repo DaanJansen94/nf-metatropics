@@ -63,7 +63,16 @@ sudo singularity build metamaps.sif metamaps.txt
 sudo singularity build samtools_minimap2.sif samtools_minimap2.txt
 ```
 
-4. Start running your own analysis!
+4. Download database:
+https://zenodo.org/record/8047541
+
+The path for the database needs to be informed to the paremeter `--dbmeta`
+   ```bash
+   tar -xzvf virusDB2.tar.gz
+   ```
+
+
+5. Start running your own analysis!
 
    <!-- TODO nf-core: Update the example "typical command" below used to run the pipeline -->
 
