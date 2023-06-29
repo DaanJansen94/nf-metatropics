@@ -302,10 +302,6 @@
                     "default": "None",
                     "description": "Path for NCBI NR database to de novo contig annotation"
                 },
-                "trim": {
-                    "type": "boolean",
-                    "description": "Trimming of 28 nucleotides at 3 and 5 prime when SISPA is used."
-                },
                 "pair": {
                     "type": "boolean",
                     "description": "If barcodes were added at both sides of a read (true) or only at one side (false)."

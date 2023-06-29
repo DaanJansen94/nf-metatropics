@@ -82,7 +82,7 @@ To uncompress the database, use the command line below:
    nextflow run nf-core/metatropics --help
    Input/output options
     --input                       [string]  Path to comma-separated file containing information about the samples in the experiment.
-    --input_dir                   [string]  Input directory with fast5 or fastq files. If fastq files, they should be one for each sample and named for instance as barcode01.fastq [default: None]
+    --input_dir                   [string]  Input directory with fast5 or fastq files [default: None]
     --outdir                      [string]  The output directory where the results will be saved. You have to use absolute paths to storage on Cloud infrastructure.
     --multiqc_title               [string]  MultiQC report title. Printed as page header, used for filename if not otherwise specified.
    Reference genome options
@@ -94,7 +94,6 @@ To uncompress the database, use the command line below:
     --minVirus                    [number]  Minimum virus data frequency in the raw data to be part of the output. [default: 0.001]
     --usegpu                      [boolean] In case fast5 is the input, the use of GPU Nvidia should be true.
     --dbmeta                      [string]  Path for the MetaMaps database for read classification. [default: None]
-    --trim                        [boolean] Trimming of 28 nucleotides at 3 and 5 prime when SISPA is used.
     --pair                        [boolean] If barcodes were added at both sides of a read (true) or only at one side (false).
     --quality                     [integer] Minimum quality for a base to build the consensus [default: 7]
     --agreement                   [number]  Minimum base frequency to be called without ambiguity [default: 0.7]
@@ -114,7 +113,7 @@ To uncompress the database, use the command line below:
    ```
    The command line for this case:
    ```bash
-   nextflow run nf-metatropics/ -profile singularity --input /home/itg.be/arezende/example4.csv --input_dir /home/itg.be/arezende/fast5 --outdir /home/itg.be/arezende/testnf_guppy --fasta /home/itg.be/arezende/databases/chm13v2.0.fa --basecall true --minLength 600 --usegpu true --dbmeta /home/itg.be/arezende/databases/virusDB2 --trim true --pair true -resume
+   nextflow run nf-metatropics/ -profile singularity --input /home/itg.be/arezende/example4.csv --input_dir /home/itg.be/arezende/fast5 --outdir /home/itg.be/arezende/testnf_guppy --fasta /home/itg.be/arezende/databases/chm13v2.0.fa --basecall true --minLength 600 --usegpu true --dbmeta /home/itg.be/arezende/databases/virusDB2 --pair true -resume
    ```
 
    If you have FASTQ as input data, you will only need to use the parameter `--input` to provide your input. It will receives the path of a csv file with the format below:
@@ -128,7 +127,7 @@ To uncompress the database, use the command line below:
    ```
    The command line for this case:
    ```bash
-   nextflow run nf-metatropics/ -profile singularity --input /home/itg.be/arezende/example3.csv --outdir /home/itg.be/arezende/testnf_fastq --fasta /home/itg.be/arezende/databases/chm13v2.0.fa --minLength 600 --dbmeta /home/itg.be/arezende/databases/virusDB2 --trim true --pair true -resume
+   nextflow run nf-metatropics/ -profile singularity --input /home/itg.be/arezende/example3.csv --outdir /home/itg.be/arezende/testnf_fastq --fasta /home/itg.be/arezende/databases/chm13v2.0.fa --minLength 600 --dbmeta /home/itg.be/arezende/databases/virusDB2 --pair true -resume
    ```
 
    ## Output
