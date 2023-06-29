@@ -82,7 +82,7 @@ To uncompress the database, use the command line below:
    nextflow run nf-core/metatropics --help
    Input/output options
     --input                       [string]  Path to comma-separated file containing information about the samples in the experiment.
-    --input_dir                   [string]  Input directory with fast5 or fastq files [default: None]
+    --input_dir                   [string]  Input directory with fast5 [default: None]
     --outdir                      [string]  The output directory where the results will be saved. You have to use absolute paths to storage on Cloud infrastructure.
     --multiqc_title               [string]  MultiQC report title. Printed as page header, used for filename if not otherwise specified.
    Reference genome options
