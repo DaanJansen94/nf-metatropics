@@ -75,6 +75,9 @@ include { FINAL_REPORT                } from '../modules/local/final_report'
 include { BAM_READCOUNT               } from '../modules/local/bam/readcount'
 include { MAFFT_ALIGN                 } from '../modules/local/mafft/align'
 include { SNIPIT_SNPPLOT              } from '../modules/local/snipit/snpplot'
+include { SNP_COMPARE                 } from '../modules/local/snp/compare'
+include { MAFFT_ALIGN as MAFFT_TWO    } from '../modules/local/mafft/align'
+include { SNIPIT_SNPPLOT as SNIPIT_TWO } from '../modules/local/snipit/snpplot'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -323,7 +326,7 @@ workflow METATROPICS {
         SEQTK_SUBSEQ.out.sequences.join(REFFIX_FASTA.out.fixedseqref)
     )
 
-    //MEDAKA.out.bamfiles.view()
+    //MEDAKA.out.assembly.view()
 
     SAMTOOLS_COVERAGE(
         MEDAKA.out.bamfiles
@@ -396,7 +399,45 @@ workflow METATROPICS {
     SNIPIT_SNPPLOT(
         MAFFT_ALIGN.out.aln
     )
-    //SNIPIT_SNPPLOT.out.plot.view()
+    //SNIPIT_SNPPLOT.out.csv.view()
+
+    //Combine 4 channel necessary to run the comparing process. First it was necessary to remove the sample id and single end meta info
+    //to combine the channel only with virus meta info. Later the info on sample and single end was added again.
+    bamMedaka_ch = BAM_READCOUNT.out.bamcount.join(MEDAKA.out.assembly).map { entry ->
+    [[virus: entry[0].virus], entry[1], entry[2], entry[3]]
+    }//.view()
+    snipitMafft_ch = SNIPIT_SNPPLOT.out.csv.join(MAFFT_ALIGN.out.aln)//.view()
+    //fourcombined_ch = bamMedaka_ch.combine(snipitMafft_ch, by: [0])//.view()
+
+    fourcombined_ch = (bamMedaka_ch.combine(snipitMafft_ch, by: [0])).map { entry ->
+        def id = entry[3].getBaseName().replaceFirst(/\..+/,"")
+        def singleEnd = "True"
+        def virus = entry[0].virus
+        [[id: id, single_end: singleEnd, virus: virus], entry[1], entry[2], entry[3], entry[4], entry[5]]
+    }//.view()
+    ///end of combining channel
+
+    SNP_COMPARE(
+        fourcombined_ch
+    )
+
+    groupEditedVirus_ch = (SNP_COMPARE.out.compare).map { entry ->
+        def id = entry[0].id
+        def singleEnd = entry[0].single_end
+        def virus = entry[0].virus
+        //def fasta = entry[1],entry[2]
+        [[virus: virus], entry[3]]
+    }.groupTuple()//.view()
+
+
+    MAFFT_TWO(
+        groupEditedVirus_ch,
+        params.outdir + "/reffix"
+    )
+
+    SNIPIT_TWO(
+        MAFFT_TWO.out.aln
+    )
 
 
     ch_versions = ch_versions.mix(FASTP.out.versions.first())
